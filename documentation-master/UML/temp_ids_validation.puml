@@ -1,0 +1,64 @@
+@startuml
+(*) --> "Бекенд берет объект 
+         из массива bulk_create"
+
+if "Указан temp_artifact_id?" then
+    if "Указан temp_parent_artifact_id?" then
+        if "temp_parent_artifact_id строка?" then
+
+            if "temp_parent_artifact_id !== temp_artifact_id?" then
+                if "Есть ли в массиве bulk_create артефакт с таким temp_artifact_id?" then
+                    --> "Валидация пройдена. 
+                         Перехожу к следующему 
+                         объекту. (.)"
+                else 
+                    --> [false] "Ошибка (400). 
+                    temp_parent_artifact_id not found."
+                endif
+            else 
+                --> [false] "Ошибка (400). 
+                     temp_parent_artifact_id and 
+                     temp_artifact_id cannot be the same."
+            endif
+
+
+        else 
+            --> [false] "Ошибка (400). Wrong temp_artifact_id"
+        endif
+    else
+        [false] if "Указан parent_artifact_id ?" then
+            if "parent_artifact_id == null?" then
+                --> "Валидация пройдена. 
+                     Перехожу к следующему 
+                     объекту. (..)"
+            else 
+                [false] if "parent_artifact_id == число?" then
+
+                    --> "Проверяю права доступа на беке."
+                    if "Принадлежит ли parent_artifact_id текущему пользователю?" then
+                        --> "Валидация пройдена. 
+                             Перехожу к следующему 
+                             объекту. (...)"
+                    else
+                    --> [false] "Ошибка (403). 
+                         Forbidden."
+                    endif
+
+
+                else 
+                    --> [false] "Ошибка (400). 
+                         Wrong parent_artifact_id"
+                endif
+            endif
+        else
+            --> [false] "Ошибка (400) 
+                temp_parent_artifact_id (parent_artifact_id) 
+                not specified."
+        endif
+    endif
+
+else 
+  --> [false] "Ошибка (400). 
+temp_artifact_id not specified."
+endif
+@enduml

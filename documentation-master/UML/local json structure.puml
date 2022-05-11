@@ -1,0 +1,118 @@
+@startjson Local json structure
+{
+    "version": 1,
+    "folder": "<UUID>",
+    "description": "Гы-гы-гы",
+    "creationDate": "YYYY-MM-DDThh:mm:ss",
+    "attachments": [
+        {
+            "name": "Ффывафыва",
+            "categoryType": 1,
+            "categoryBody": "Ффывафыва"
+        },
+        {
+            "name": "Speak English Naturally with English Idioms Part Eight.pdf",
+            "categoryType": 3,
+            "categoryFileName": "Speak English Naturally with English Idioms Part Eight.pdf"
+        }
+    ],
+    "cities": [
+        {
+            "cityID": 6,
+            "folder": "5BBE4620-7BA0-4A7F-857C-B5952DD66521",
+            "date1": "YYYY-MM-DDThh:mm:ss",
+            "date2": "YYYY-MM-DDThh:mm:ss",
+            "booking": {
+                "hotel": {
+                    "lat": 55.786445,
+                    "name": "Sta Group",
+                    "lon": 37.707727,
+                    "address": "1st Elektrozavodsky Lane, 2, Moscow, Russia"
+                },
+                "attachments": [
+                    {
+                        "name": "Speak English Naturally with English Idioms Part Eight.pdf",
+                        "categoryType": 3,
+                        "categoryFileName": "Speak English Naturally with English Idioms Part Eight.pdf"
+                    }
+                ]
+            },
+            "attachments": [
+                {
+                    "name": "Фыва",
+                    "categoryType": 1,
+                    "categoryBody": "Фыва"
+                },
+                {
+                    "categoryLinkName": "",
+                    "categoryLinkUrl": "http://ya.ru",
+                    "name": "http://ya.ru",
+                    "categoryType": 2
+                },
+                {
+                    "name": "Speak English Naturally with English Idioms Part Eight.pdf",
+                    "categoryType": 3,
+                    "categoryFileName": "Speak English Naturally with English Idioms Part Eight.pdf"
+                }
+            ]
+        },
+        {
+            "cityID": 789,
+            "booking": {
+                "attachments": []
+            },
+            "folder": "EF27D826-503D-4FA1-9713-CFA6D8872B8B",
+            "attachments": []
+        }
+    ],
+    "transfers": [
+        {
+            "cityIdFrom": 317,
+            "cityIdTo": 6,
+            "folder": "B641FE1B-52E1-44EA-9174-DF497FE29BA9",
+            "category": {
+                "plane": {
+                    "flightModel": {
+                        "date": "YYYY-MM-DDThh:mm:ss",
+                        "transfers": [
+                            {
+                                "departureAirport": "AYT",
+                                "arrivalTimestamp": 1591936800,
+                                "departureTime": "06:25",
+                                "arrivalAirport": "SAW",
+                                "arrivalTime": "07:40",
+                                "departureTimestamp": 1591932300,
+                                "carrier": "TK",
+                                "flightNumber": "7535",
+                                "durationMin": 75,
+                                "localArrivalTimestamp": 1591936800,
+                                "localDepartureTimestamp": 1591932300
+                            }
+                        ]
+                    }
+                }
+            },
+            "attachments": [
+                {
+                    "name": "Speak English Naturally with English Idioms Part Eight.pdf",
+                    "categoryType": 3,
+                    "categoryFileName": "Speak English Naturally with English Idioms Part Eight.pdf"
+                }
+            ]
+        },
+        {
+            "cityIdFrom": 317,
+            "cityIdTo": 750,
+            "folder": "EC9E905F-2198-471C-B474-A9C93EBE3118",
+            "category": {
+                "train": {
+                    "finishDate": "YYYY-MM-DDThh:mm:ss",
+                    "startDate": "YYYY-MM-DDThh:mm:ss"
+                }
+            },
+            "attachments": []
+        },
+        null
+    ]
+}
+@endjson

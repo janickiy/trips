@@ -1,0 +1,64 @@
+@startuml Trips
+
+header Trips
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam dpi 200
+skinparam LegendFontSize 11
+skinparam SequenceGroup {
+    BackgroundColor #Lavender
+    BodyBackgroundColor #AliceBlue
+}
+skinparam SequenceReference {
+    HeaderBackgroundColor #PeachPuff
+    BackgroundColor #PapayaWhip
+}
+
+actor "Юзер" as user
+participant "Фронтенд" as front
+participant "Бэкенд" as back
+
+title Регистрация пользователя
+
+' autonumber "<b>0"
+
+user -> front: Открывает приложение в первый раз
+opt Выбирает регистрацию по эл. почте
+    user -> front: Заполняет имеил
+    front -> back: POST запрос /api/send_auth_email
+    opt Если такой имеил уже зарегистирован
+        back -> front: POST ответ /api/send_auth_email \nс ошибкой, что имейл занят
+        front -> user: "Данный имейл занят"
+    else Если такой имеил свободен
+        back -> front: POST ответ /api/send_auth_email \nс кодом, отправленным на почту
+    end
+    back -> user: Получает на почту письмо с кодом
+    user -> front: Заполняет код из письма
+    opt Если код заполнен неправильно
+        front -> user: "Неверный код"
+    end
+else Выбирает регистрацию через любую из соцсетей
+    user -> front: Выбирает соцсеть
+    front -> front: Открывает WebView для авторизации
+    user -> front: Авторизовывается
+    front -> back: POST запрос /api/login/{provider} \nс токеном
+    opt Если такой имеил уже зарегистирован
+        back -> front: POST ответ /api/login/{provider} \nс ошибкой, что имейл занят
+        front -> user: "Данный имейл занят"
+    else Если такой имеил свободен
+        back -> front: POST ответ /api/login/{provider} \nс bearer токеном
+    end
+end
+user -> front: Заполняет никнейм
+front -> back: POST запрос /api/register
+opt Если такой никнейм уже зарегистирован
+    back -> front: POST ответ /api/register \nс ошибкой, что никнейм занят
+    front -> user: "Данный никнейм занят"
+else Если такой никнейм свободен
+    back -> front: POST ответ /api/register \nс подтверждением регистрации
+    back -> front: Авторизовывает пользователя
+end
+front -> front: Открывает экран с поездками
+
+@enduml

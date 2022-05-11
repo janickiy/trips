@@ -1,0 +1,92 @@
+@startuml Trips
+
+header Trips
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam dpi 200
+skinparam LegendFontSize 11
+skinparam SequenceGroup {
+    BackgroundColor #Lavender
+    BodyBackgroundColor #AliceBlue
+}
+skinparam SequenceReference {
+    HeaderBackgroundColor #PeachPuff
+    BackgroundColor #PapayaWhip
+}
+
+actor "Юзер" as user
+participant "Фронтенд" as front
+participant "Бэкенд" as back
+
+title Синхронизация фронта и бэка
+
+' autonumber "<b>0"
+
+user -> front: Открывает приложение \nили выходит из оффлайна \nили восстанавливает WSS \nсоединение после обрыва
+front -> back: Открывает WSS соединение \nс авторизационными заголовками
+back -> front: Авторизует клиента
+back -> front: WSS handshake
+opt Если есть неотправленные обновления
+    front -> back: Отправляет одним сообщением \nвсе обновления
+end
+group Бэкенд мерджит обновления
+    loop Для каждого добавления артефакта
+        opt Если артефакт уже существует
+            back -> back: Отклоняет обновление
+        else Иначе
+            back -> back: Применяет обновление
+        end
+    end
+    loop Для каждого редактирования артефакта
+        opt Если артефакта не существует на сервере
+            back -> back: Отклоняет обновление
+        else Если версия артефакта на сервере \nвыше, чем полученная
+            back -> back: Отклоняет обновление
+        else Иначе
+            back -> back: Примененяет обновление
+        end
+    end
+    loop Для каждого удаления артефакта
+        back -> back: Удаляет все дочерние артефакты
+        back -> back: Применяет обновление
+    end
+end
+back -> front: Результаты мерджа: \nчто успешно, а что — нет
+opt Если есть незагруженные файлы
+    loop Для каждого файла
+        front -> back: Загружает файл по REST
+        back -> back: Добавляет файл в артефакт
+    end
+end
+back -> front: Сообщение со всеми артефактами \n(без файлов)
+front -> front: Заменяет локальные артефакты \nполученными с сервера
+opt Если есть нескачанные файлы
+    loop Для каждого файла
+        front -> back: Скачивает файл
+        front -> front: Добавляет файл в артефакт
+    end
+end
+user -> front: Добавляет/редактирует/удаляет артефакт
+front -> back: Отправляет обновление
+opt Если не удалось отправить обновление
+    group Складывает обновление в очередь
+        opt Если это добавление артефакта
+            front -> front: Добавляет обновление в очередь
+        else Если это редактирование артефакта
+            opt Если в очереди уже есть изменения по этому артефакту
+                front -> front: Удаляет из очереди предыдущее обновление
+                front -> front: Добавляет обновление в очередь
+            end
+        else Если это удаление артефакта
+            opt Если в очереди есть добавление этого артефакта
+                front -> front: Удаляет из очереди добавление этого артефакта
+            else Если в очереди есть редактирование этого артефакта
+                front -> front: Удаляет из очереди редактирование этого артефакта
+            end
+            front -> front: Добавляет обновление в очередь
+        end
+    end
+end
+
+@enduml

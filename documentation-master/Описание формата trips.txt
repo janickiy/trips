@@ -1,0 +1,138 @@
+Файл .trips — zip-архив. 
+
+Каждая папка в корне архива представляет собой поездку. Поездки называются в соответствии со своими идентификаторами; идентификатором выступает UUID.
+Внутри каждой поездки находятся файл content.json и папка cities; опционально — папка transfers и прикреплённые файлы поездки корневого уровня.
+У перемещения и города название тоже представляет собой UUID. Внутри папки города могут находиться прикреплённые файлы и папка booking (со своими файлами).
+
+Формат content.json в корне поездки:
+
+{
+	"version": 1, // Версия формата, Integer
+	"folder": <UUID>, // Имя папки, внутри котоой находится content.json
+	"description": "Гы-гы-гы", // Описание поездки
+	"creationDate": YYYY-MM-DDThh:mm:ss,
+    "attachments": // вложения поездки
+    [
+        {
+            "name": "Ффывафыва",
+            "categoryType": 1, // 1 - Заметка, 2  - ссылка, 3 - файл
+            "categoryBody": "Ффывафыва"
+        },
+        {
+            "name": "Speak English Naturally with English Idioms Part Eight.pdf", // как отображаем в UI
+            "categoryType": 3,
+            "categoryFileName": "Speak English Naturally with English Idioms Part Eight.pdf" // файл лежит в корне поездки, рекомендуется присваивать имени UUID
+        }
+    ],
+    
+    "cities": // города
+    [
+        {
+            "cityID": 6, // идентификатор города из БД
+            "folder": "5BBE4620-7BA0-4A7F-857C-B5952DD66521", // название папки города, UUID
+            "date1": YYYY-MM-DDThh:mm:ss, // дата начала пребывания с этом городе
+            "date2": YYYY-MM-DDThh:mm:ss, // дата конца пребывания с этом городе
+            "booking": // бронирование
+            {
+                "hotel": // информация об отеле
+                {
+                    "lat": 55.786445,
+                    "name": "Sta Group",
+                    "lon": 37.707727,
+                    "address": "1st Elektrozavodsky Lane, 2, Moscow, Russia"
+                },
+                "attachments": // вложения в бронирование
+                [
+                    {
+                        "name": "Speak English Naturally with English Idioms Part Eight.pdf",
+                        "categoryType": 3,
+                        "categoryFileName": "Speak English Naturally with English Idioms Part Eight.pdf" // файл лежит в "поездка/cities/ID/booking/файл", рекомендуется присваивать имени UUID
+                    }
+                ]
+            },
+            "attachments": // вложения
+            [
+                {
+                    "name": "Фыва",
+                    "categoryType": 1, // Заметка
+                    "categoryBody": "Фыва"
+                },
+                {
+                    "categoryLinkName": "",
+                    "categoryLinkUrl": "http://ya.ru",
+                    "name": "http://ya.ru",
+                    "categoryType": 2 // Ссылка
+                },
+                {
+                    "name": "Speak English Naturally with English Idioms Part Eight.pdf",
+                    "categoryType": 3, // Файл
+                    "categoryFileName": "Speak English Naturally with English Idioms Part Eight.pdf" // лежит в "поездка/cities/ID/файл", рекомендуется присваивать имени UUID
+                }
+            ]
+        },
+        {
+            "cityID": 789,
+            "booking":
+            {
+                "attachments": []
+            },
+            "folder": "EF27D826-503D-4FA1-9713-CFA6D8872B8B",
+            "attachments": []
+        }
+    ],
+    "transfers": // перемещения между городами
+    [
+        {
+            "cityIdFrom": 317, // город отправления, id из базы
+            "cityIdTo": 6, // город прибытия, id из базы
+            "folder": "B641FE1B-52E1-44EA-9174-DF497FE29BA9", // название папки перемещения, UUID
+            "category":
+            {
+                "plane": // самолёт
+                {
+                    "flightModel":
+                    {
+	                    "date": YYYY-MM-DDThh:mm:ss,
+                        "transfers": // перелёты, в случае нескольких рейс будет с пересадками
+                        [
+                            {
+                                "departureAirport": "AYT",
+                                "arrivalTimestamp": 1591936800,
+                                "departureTime": "06:25",
+                                "arrivalAirport": "SAW",
+                                "arrivalTime": "07:40",
+                                "departureTimestamp": 1591932300,
+                                "carrier": "TK",
+                                "flightNumber": "7535",
+                                "durationMin": 75,
+                                "localArrivalTimestamp": 1591936800, // v1.1
+                                "localDepartureTimestamp": 1591932300 // v1.1
+                            }
+                        ],
+                    }
+                }
+            },
+            "attachments": // вложения в перемещение
+            [
+                {
+                    "name": "Speak English Naturally with English Idioms Part Eight.pdf",
+                    "categoryType": 3,
+                    "categoryFileName": "Speak English Naturally with English Idioms Part Eight.pdf" // находится в "поездка/transfers/id/файл"
+                }
+            ]
+        },
+        {
+			"cityIdFrom": 317,
+			"cityIdTo": 750,
+			"folder": "EC9E905F-2198-471C-B474-A9C93EBE3118",
+			"category": {
+				"train": { // поезд; полностью аналогично для автомобиля (car) и парома (boat)
+					"finishDate": YYYY-MM-DDThh:mm:ss,
+					"startDate": YYYY-MM-DDThh:mm:ss,
+				}
+			},
+			"attachments": []
+		},
+        null // null в случае незаданного перемещения; количество перемещений всегда равно количеству городов + 1; первое перемещение — откуда-то в первый город, последнее — из последнего город куда-то
+    ]
+}

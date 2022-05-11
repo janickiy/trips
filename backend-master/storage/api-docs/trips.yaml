@@ -1,0 +1,2836 @@
+openapi: 3.0.0
+info:
+  title: 'Документация API для приложения Trips.'
+  version: 1.0.0
+paths:
+  '/api/login/{provider}':
+    post:
+      tags:
+        - Users
+      summary: 'Метод для регистрации с помощью соц. сетей'
+      description: ''
+      operationId: social_register
+      parameters:
+        -
+          name: token
+          in: query
+          description: token
+          required: true
+          schema:
+            type: string
+          example: ya29.A0AfH6SMDvtWet4WFGrkmC03E6R5y1zUNOA4rGY0oc61pHz4Mbm7ZoSHAG7V6vYRTH2VrxOSqleGSuiINu7H....
+        -
+          name: provider
+          in: query
+          description: 'provider: facebook, google, apple'
+          required: true
+          schema:
+            type: string
+          example: facebook
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/UserSchema'
+                type: object
+        403:
+          description: 'Доступ запрещен.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 403
+                  message:
+                    type: string
+                    example: 'Доступ запрещен.'
+                type: object
+        404:
+          description: 'Неизвестный сервис провайдер'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Неизвестный сервис провайдер.'
+                type: object
+        422:
+          description: 'Пользователь ввел неверные данные для регистрации.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 422
+                  message:
+                    type: string
+                    example: 'Пользователь с таким e-mail уже зарегистрирован.'
+                type: object
+        500:
+          description: 'Ошибка на стороне сервера.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 500
+                  message:
+                    type: string
+                    example: 'Текст ошибки.'
+                type: object
+      security: []
+  '/api/travels/{travel_id}/cities/{city_id}/bookings':
+    get:
+      tags:
+        - 'City bookings'
+      summary: 'Метод возвращает все бронирования в городе, начиная с последних.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: listCityBookings
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    name:
+                      type: string
+                      example: 'Бронирование в отеле Hilton.'
+                    address:
+                      type: string
+                      example: 'Улица Верхняя Красносельская, 11а-4, Красносельский, Москва.'
+                    latitude:
+                      type: decilmal
+                      example: 47.501856
+                    longitude:
+                      type: decilmal
+                      example: 42.9755304
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - 'City bookings'
+      summary: 'Метод создает новое бронирование в городе.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: createCityBookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  text:
+                    type: string
+                  name:
+                    type: string
+                  address:
+                    type: string
+                  latitude:
+                    type: decilmal
+                  longitude:
+                    type: decilmal
+                type: object
+                example:
+                  name: 'Бронирование в отеле Hilton.'
+                  address: 'Улица Верхняя Красносельская, 11а-4, Красносельский, Москва.'
+                  latitude: 47.501856
+                  longitude: 42.9755304
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    name:
+                      type: string
+                      example: 'Бронирование в отеле Hilton.'
+                    address:
+                      type: string
+                      example: 'Улица Верхняя Красносельская, 11а-4, Красносельский, Москва.'
+                    latitude:
+                      type: decilmal
+                      example: 47.501856
+                    longitude:
+                      type: decilmal
+                      example: 42.9755304
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/bookings/{booking_id}':
+    get:
+      tags:
+        - 'City bookings'
+      summary: 'Метод возвращает бронирование в городе.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: readCityBookings
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  travel_id:
+                    type: int
+                    example: '1'
+                  city_id:
+                    type: int
+                    example: '1'
+                  name:
+                    type: string
+                    example: 'Бронирование в отеле Hilton.'
+                  address:
+                    type: string
+                    example: 'Улица Верхняя Красносельская, 11а-4, Красносельский, Москва.'
+                  latitude:
+                    type: decilmal
+                    example: 47.501856
+                  longitude:
+                    type: decilmal
+                    example: 42.9755304
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+    put:
+      tags:
+        - 'City bookings'
+      summary: 'Метод обновляет бронирование в городе.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: updateCityBookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  address:
+                    type: string
+                  latitude:
+                    type: decilmal
+                  longitude:
+                    type: decilmal
+                type: object
+                example:
+                  name: 'Бронирование в отеле Hilton.'
+                  address: 'Улица Верхняя Красносельская, 11а-4, Красносельский, Москва.'
+                  latitude: 47.501856
+                  longitude: 42.9755304
+      responses:
+        200:
+          description: 'Возвращает массив обновленных объектов.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    name:
+                      type: string
+                      example: 'Бронирование в отеле Hilton.'
+                    address:
+                      type: string
+                      example: 'Улица Верхняя Красносельская, 11а-4, Красносельский, Москва.'
+                    latitude:
+                      type: decilmal
+                      example: 47.501856
+                    longitude:
+                      type: decilmal
+                      example: 42.9755304
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    delete:
+      tags:
+        - 'City bookings'
+      summary: 'Метод удаляет бронирование в городе.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: deleteCityBookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                type: object
+                example:
+                  id: 1
+      responses:
+        200:
+          description: 'Бронирования успешно удалены.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/bookings/{booking_id}/files':
+    get:
+      tags:
+        - 'City bookings'
+      summary: 'Метод возвращает все файлы бронирования, начиная с последних.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: listCityBookingFiles
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    booking_id:
+                      type: int
+                      example: '1'
+                    short_description:
+                      type: string
+                      example: 'Описание файла бронирования'
+                    file_name:
+                      type: string
+                      example: 'Название файла бронирования'
+                    link:
+                      type: string
+                      example: 'http://data.trips.im/storage/users/1/travels/1/cities/1/booking/1/JwkHr7iZ35u5mgs1.jpg'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - 'City bookings'
+      summary: 'Метод создает новый файл бронирования.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: createCityBookingFile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file_name:
+                  type: string
+                short_description:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+              type: object
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  travel_id:
+                    type: int
+                    example: '1'
+                  city_id:
+                    type: int
+                    example: '1'
+                  booking_id:
+                    type: int
+                    example: '1'
+                  short_description:
+                    type: string
+                    example: 'Описание файла бронирования.'
+                  file_name:
+                    type: string
+                    example: 'Название файла бронирования.'
+                  link:
+                    type: string
+                    example: 'http://data.trips.im/storage/users/1/travels/1/cities/1/booking/1/JwkHr7iZ35u5mgs1.jpg'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        500:
+          description: 'Файл не загружен.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+    delete:
+      tags:
+        - 'City bookings'
+      summary: 'Метод удаляет файлы бронирования.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: deleteCityBookingFiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                type: object
+                example:
+                  id: 1
+      responses:
+        200:
+          description: 'Файлы успешно удалены.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/bookings/{booking_id}/files/{file_id}':
+    get:
+      tags:
+        - 'City bookings'
+      summary: 'Метод возвращает файл бронирования.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: readCityBookingFile
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  travel_id:
+                    type: int
+                    example: '1'
+                  city_id:
+                    type: int
+                    example: '1'
+                  booking_id:
+                    type: int
+                    example: '1'
+                  short_description:
+                    type: string
+                    example: 'Описание файла бронирования'
+                  file_name:
+                    type: string
+                    example: 'Название файла бронирования'
+                  link:
+                    type: string
+                    example: 'http://data.trips.im/storage/users/1/travels/1/cities/1/JwkHr7iZ35u5mgs1.jpg'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+  'api/travels/{travel_id}/cities/{city_id}/bookings/{booking_id}/files/{file_id}':
+    post:
+      tags:
+        - 'City bookings'
+      summary: 'Метод обновляет файл бронирования'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: updateCityBookingFile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file_name:
+                  type: string
+                short_description:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+              type: object
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  travel_id:
+                    type: int
+                    example: '1'
+                  city_id:
+                    type: int
+                    example: '1'
+                  booking_id:
+                    type: int
+                    example: '1'
+                  short_description:
+                    type: string
+                    example: 'Описание файла бронирования.'
+                  file_name:
+                    type: string
+                    example: 'Название файла бронирования.'
+                  link:
+                    type: string
+                    example: 'http://data.trips.im/storage/users/1/travels/1/cities/1/JwkHr7iZ35u5mgs1.jpg'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+  /api/cities/search:
+    get:
+      tags:
+        - Cities
+      summary: 'Метод для поиска городов по базе данных. Возвращает по 30 записей на страницу'
+      description: 'Если не найдено ни 1 города, то массив data будет пустой.'
+      operationId: searchCities
+      parameters:
+        -
+          name: q
+          in: query
+          description: 'Слово для поиска.'
+          required: true
+          schema:
+            type: string
+          example: Москва
+        -
+          name: page
+          in: query
+          description: Страница
+          schema:
+            type: integer
+          example: Москва
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  current_page:
+                    type: int
+                    example: '1'
+                  per_page:
+                    type: int
+                    example: '30'
+                  total:
+                    type: int
+                    example: '1000'
+                  data:
+                    type: array
+                    items:
+                      properties:
+                        id:
+                          type: int32
+                          example: '1'
+                        name_ru:
+                          type: string
+                          example: Москва
+                      type: object
+                type: object
+      security: []
+  '/api/travels/{travel_id}/cities/{city_id}/files':
+    get:
+      tags:
+        - 'City files'
+      summary: 'Метод возвращает файлы в городе, начиная с последних.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: listCityFiles
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    short_description:
+                      type: string
+                      example: 'Описание файла'
+                    file_name:
+                      type: string
+                      example: 'Название файла'
+                    link:
+                      type: string
+                      example: 'http://data.trips.im/storage/users/1/travels/1/cities/1/JwkHr7iZ35u5mgs1.jpg'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - 'City files'
+      summary: 'Метод создает новый файл в городе.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: createCityFiles
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file_name:
+                  type: string
+                short_description:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+              type: object
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  travel_id:
+                    type: int
+                    example: '1'
+                  city_id:
+                    type: int
+                    example: '1'
+                  short_description:
+                    type: string
+                    example: 'Описание файла'
+                  file_name:
+                    type: string
+                    example: 'Название файла'
+                  link:
+                    type: string
+                    example: 'http://data.trips.im/storage/users/1/travels/1/cities/1/JwkHr7iZ35u5mgs1.jpg'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        500:
+          description: 'Файл не загружен.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/files/{file_id}':
+    get:
+      tags:
+        - 'City files'
+      summary: 'Метод возвращает файл в городе.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: readCityFiles
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  travel_id:
+                    type: int
+                    example: '1'
+                  city_id:
+                    type: int
+                    example: '1'
+                  short_description:
+                    type: string
+                    example: 'Описание файла'
+                  file_name:
+                    type: string
+                    example: 'Название файла'
+                  link:
+                    type: string
+                    example: 'http://data.trips.im/storage/users/1/travels/1/cities/1/JwkHr7iZ35u5mgs1.jpg'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - 'City files'
+      summary: 'Метод обновляет файл в городе.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: updateCityFile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file_name:
+                  type: string
+                short_description:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+              type: object
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  travel_id:
+                    type: int
+                    example: '1'
+                  city_id:
+                    type: int
+                    example: '1'
+                  short_description:
+                    type: string
+                    example: 'Описание файла'
+                  file_name:
+                    type: string
+                    example: 'Название файла'
+                  link:
+                    type: string
+                    example: 'http://data.trips.im/storage/users/1/travels/1/cities/1/JwkHr7iZ35u5mgs1.jpg'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+    delete:
+      tags:
+        - 'City files'
+      summary: 'Метод удаляет файл в городе.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: deleteCityFiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                type: object
+                example:
+                  id: 1
+      responses:
+        200:
+          description: 'Файлы успешно удалены.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/links':
+    get:
+      tags:
+        - 'City links'
+      summary: 'Метод возвращает ссылки о городе, начиная с последних.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: listCityLink
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    title:
+                      type: string
+                      example: 'Ссылка на статью в википедии'
+                    link:
+                      type: string
+                      example: 'https://ru.wikipedia.org/wiki/%D0%9F%D0%B0%D1%80%D0%B8%D0%B6'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    put:
+      tags:
+        - 'City links'
+      summary: 'Метод обновляет ссылки в городе.'
+      description: 'На входе принимает массив объектов. Обязательно нужно передать id ссылки. Остальные поля передаем только в случае, если нужно обновить. Требуется авторизация при помощи заголовка bearer.'
+      operationId: updateCityLink
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                  title:
+                    type: string
+                  link:
+                    type: string
+                type: object
+                example:
+                  id: 1
+                  title: 'Отредиктированная ссылка.'
+                  link: 'https://google.com'
+      responses:
+        200:
+          description: 'Возвращает массив обновленных объектов.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    text:
+                      type: string
+                      example: 'Отредиктированная заметка.'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - 'City links'
+      summary: 'Метод создает новую ссылку в городе.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: createCityLink
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  text:
+                    type: string
+                type: object
+                example:
+                  title: 'Ссылка на статью в википедии'
+                  link: 'https://ru.wikipedia.org/wiki/%D0%9F%D0%B0%D1%80%D0%B8%D0%B6'
+      responses:
+        200:
+          description: 'Ссылки созданы.'
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    title:
+                      type: string
+                      example: 'Ссылка на статью в википедии'
+                    link:
+                      type: string
+                      example: 'https://ru.wikipedia.org/wiki/%D0%9F%D0%B0%D1%80%D0%B8%D0%B6'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    delete:
+      tags:
+        - 'City links'
+      summary: 'Метод удаляет ссылки о городе.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: deleteCityLink
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                type: object
+                example:
+                  id: 1
+      responses:
+        200:
+          description: 'Ссылки успешно удалены.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/links/{link_id}':
+    get:
+      tags:
+        - 'City links'
+      summary: 'Метод возвращает ссылку в городе.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: readCityLink
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  travel_id:
+                    type: int
+                    example: '1'
+                  city_id:
+                    type: int
+                    example: '1'
+                  title:
+                    type: string
+                    example: 'Тут название ссылки.'
+                  link:
+                    type: string
+                    example: 'https://ru.wikipedia.org/wiki/%D0%9F%D0%B0%D1%80%D0%B8%D0%B6'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/notes':
+    get:
+      tags:
+        - 'City notes'
+      summary: 'Метод возвращает заметки о городе, начиная с последних.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: listCityNote
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    text:
+                      type: string
+                      example: 'Тут текст заметки.'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    put:
+      tags:
+        - 'City notes'
+      summary: 'Метод обновляет заметки о городе.'
+      description: 'На входе принимает массив объектов. Обязательно нужно передать id заметки. Остальные поля передаем только в случае, если нужно обновить. Требуется авторизация при помощи заголовка bearer.'
+      operationId: updateCityNote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                  text:
+                    type: string
+                type: object
+                example:
+                  id: 1
+                  text: 'Отредиктированная заметка.'
+      responses:
+        200:
+          description: 'Возвращает массив обновленных объектов.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    text:
+                      type: string
+                      example: 'Отредиктированная заметка.'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - 'City notes'
+      summary: 'Метод создает заметки о городе.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: createCityNote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  text:
+                    type: string
+                type: object
+                example:
+                  text: 'Моя новая заметка'
+      responses:
+        200:
+          description: 'Заметки созданы.'
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    text:
+                      type: string
+                      example: 'Моя поездка в Европу.'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    delete:
+      tags:
+        - 'City notes'
+      summary: 'Метод удаляет заметки о городе.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: deleteCityNote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                type: object
+                example:
+                  id: 1
+      responses:
+        200:
+          description: 'Поездки успешно удалены.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/notes/{note_id}':
+    get:
+      tags:
+        - 'City notes'
+      summary: 'Метод возвращает заметку о городе'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: oneCityNote
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  travel_id:
+                    type: int
+                    example: '1'
+                  city_id:
+                    type: int
+                    example: '1'
+                  text:
+                    type: string
+                    example: 'Тут текст заметки.'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/tickets':
+    get:
+      tags:
+        - 'City tickets'
+      summary: 'Метод возвращает все билеты, начиная с последних.'
+      description: 'Если указана категория 1, то смотрим массив plane, 2 - train, 3 - auto, 4 - boat. Требуется авторизация при помощи заголовка bearer.'
+      operationId: listCityTickets
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    departure_name_ru:
+                      type: string
+                      example: Киев
+                    departure_city_id:
+                      type: int
+                      example: '117457'
+                    arrival_name_ru:
+                      type: string
+                      example: Киев
+                    arrival_city_id:
+                      type: int
+                      example: '117457'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    boat:
+                      $ref: '#/components/schemas/BoatSchema'
+                    plane:
+                      $ref: '#/components/schemas/PlaneSchema'
+                    auto:
+                      $ref: '#/components/schemas/AutoSchema'
+                    train:
+                      $ref: '#/components/schemas/TrainSchema'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    put:
+      tags:
+        - 'City tickets'
+      summary: 'Метод обновляет билет.'
+      description: 'Если указана категория 1, то передаем массив plane, 2 - train, 3 - auto, 4 - boat. Требуется авторизация при помощи заголовка bearer.'
+      operationId: updateCityTickets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                  departure_city_id:
+                    type: integer
+                  departure_name_ru:
+                    type: string
+                  arrival_city_id:
+                    type: integer
+                  arrival_name_ru:
+                    type: string
+                  city_ticket_category_id:
+                    type: integer
+                  boat:
+                    $ref: '#/components/schemas/BoatSchema'
+                  plane:
+                    $ref: '#/components/schemas/PlaneSchema'
+                  auto:
+                    $ref: '#/components/schemas/AutoSchema'
+                  train:
+                    $ref: '#/components/schemas/TrainSchema'
+                type: object
+      responses:
+        200:
+          description: 'Возвращает массив обновленных объектов.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    departure_name_ru:
+                      type: string
+                      example: Киев
+                    departure_city_id:
+                      type: int
+                      example: '117457'
+                    arrival_name_ru:
+                      type: string
+                      example: Киев
+                    arrival_city_id:
+                      type: int
+                      example: '117457'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    boat:
+                      $ref: '#/components/schemas/BoatSchema'
+                    plane:
+                      $ref: '#/components/schemas/PlaneSchema'
+                    auto:
+                      $ref: '#/components/schemas/AutoSchema'
+                    train:
+                      $ref: '#/components/schemas/TrainSchema'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - 'City tickets'
+      summary: 'Метод создает новый билет.'
+      description: 'На входе принимает массив объектов. Если указана категория 1, то смотрим массив plane, 2 - train, 3 - auto, 4 - boat. Требуется авторизация при помощи заголовка bearer.'
+      operationId: createCityTickets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  departure_city_id:
+                    type: integer
+                  departure_name_ru:
+                    type: string
+                  arrival_city_id:
+                    type: integer
+                  arrival_name_ru:
+                    type: string
+                  city_ticket_category_id:
+                    type: integer
+                  boat:
+                    $ref: '#/components/schemas/BoatSchema'
+                  plane:
+                    $ref: '#/components/schemas/PlaneSchema'
+                  auto:
+                    $ref: '#/components/schemas/AutoSchema'
+                  train:
+                    $ref: '#/components/schemas/TrainSchema'
+                type: object
+      responses:
+        200:
+          description: 'Билеты созданы.'
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    departure_name_ru:
+                      type: string
+                      example: Киев
+                    departure_city_id:
+                      type: int
+                      example: '117457'
+                    arrival_name_ru:
+                      type: string
+                      example: Киев
+                    arrival_city_id:
+                      type: int
+                      example: '117457'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    boat:
+                      $ref: '#/components/schemas/BoatSchema'
+                    plane:
+                      $ref: '#/components/schemas/PlaneSchema'
+                    auto:
+                      $ref: '#/components/schemas/AutoSchema'
+                    train:
+                      $ref: '#/components/schemas/TrainSchema'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    delete:
+      tags:
+        - 'City tickets'
+      summary: 'Метод удаляет билет.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: deleteCityTickets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                type: object
+                example:
+                  id: 1
+      responses:
+        200:
+          description: 'Билеты успешно удалены.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/tickets/{ticket_id}':
+    get:
+      tags:
+        - 'City tickets'
+      summary: 'Метод возвращает билет.'
+      description: 'Если указана категория 1, то смотрим массив plane, 2 - train, 3 - auto, 4 - boat. Требуется авторизация при помощи заголовка bearer.'
+      operationId: readCityTicket
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    travel_id:
+                      type: int
+                      example: '1'
+                    city_id:
+                      type: int
+                      example: '1'
+                    departure_name_ru:
+                      type: string
+                      example: Киев
+                    departure_city_id:
+                      type: int
+                      example: '117457'
+                    arrival_name_ru:
+                      type: string
+                      example: Киев
+                    arrival_city_id:
+                      type: int
+                      example: '117457'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    boat:
+                      $ref: '#/components/schemas/BoatSchema'
+                    plane:
+                      $ref: '#/components/schemas/PlaneSchema'
+                    auto:
+                      $ref: '#/components/schemas/AutoSchema'
+                    train:
+                      $ref: '#/components/schemas/TrainSchema'
+                  type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/tickets/{ticket_id}/files':
+    get:
+      tags:
+        - 'City tickets'
+      summary: 'Метод возвращает все файлы начиная с последних.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: listCityTicketFiles
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    city_ticket_id:
+                      type: int
+                      example: '1'
+                    short_description:
+                      type: string
+                      example: 'Описание файла билета.'
+                    file_name:
+                      type: string
+                      example: 'Название файла билета.'
+                    link:
+                      type: string
+                      example: 'http://data.trips.im/storage/users/1/travels/2/cities/3/tickets/4/RNaphXahkKIEFLOK.jpg'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - 'City tickets'
+      summary: 'Метод создает новый файл.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: createCityTicketFiles
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file_name:
+                  type: string
+                short_description:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+              type: object
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  city_ticket_id:
+                    type: int
+                    example: '1'
+                  short_description:
+                    type: string
+                    example: 'Описание файла билета.'
+                  file_name:
+                    type: string
+                    example: 'Название файла билета.'
+                  link:
+                    type: string
+                    example: 'http://data.trips.im/storage/users/1/travels/2/cities/3/tickets/4/RNaphXahkKIEFLOK.jpg'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        500:
+          description: 'Файл не загружен.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities/{city_id}/tickets/{ticket_id}/files/{file_id}':
+    get:
+      tags:
+        - 'City tickets'
+      summary: 'Метод возвращает ссылку на файл.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: readCityTicketFile
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  city_ticket_id:
+                    type: int
+                    example: '1'
+                  short_description:
+                    type: string
+                    example: 'Описание файла билета.'
+                  file_name:
+                    type: string
+                    example: 'Название файла билета.'
+                  link:
+                    type: string
+                    example: 'http://data.trips.im/storage/users/1/travels/2/cities/3/tickets/4/RNaphXahkKIEFLOK.jpg'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - 'City tickets'
+      summary: 'Метод обновляет файл билета'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: updateCityTicketFile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file_name:
+                  type: string
+                short_description:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+              type: object
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  city_ticket_id:
+                    type: int
+                    example: '1'
+                  short_description:
+                    type: string
+                    example: 'Описание файла билета.'
+                  file_name:
+                    type: string
+                    example: 'Название файла билета.'
+                  link:
+                    type: string
+                    example: 'http://data.trips.im/storage/users/1/travels/2/cities/3/tickets/4/RNaphXahkKIEFLOK.jpg'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+    delete:
+      tags:
+        - 'City tickets'
+      summary: 'Метод удаляет файл.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: deleteCityBookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                type: object
+                example:
+                  id: 1
+      responses:
+        200:
+          description: 'Файлы успешно удалены.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+      security:
+        -
+          bearerAuth: []
+  /api/tickets/categories:
+    get:
+      tags:
+        - 'City ticket categories'
+      summary: 'Метод возвращает список категорий билетов.'
+      description: ''
+      operationId: getTicketCategories
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    name:
+                      type: string
+                      example: Авиа
+                    image:
+                      type: string
+                  type: object
+      security: []
+  'travels/{travel_id}/cities':
+    get:
+      tags:
+        - 'Travel cities'
+      summary: 'Метод возвращает список городов из выбранного пушешествия'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: getTravelCities
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    name:
+                      type: string
+                      example: 'Моя поездка в Европу.'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}/cities':
+    post:
+      tags:
+        - 'Travel cities'
+      summary: 'Метод добавляет города в путешествие.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: createTravelCity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  city_id:
+                    type: integer
+                type: object
+                example:
+                  city_id: 1
+      responses:
+        200:
+          description: 'Города успешно добавлены в поездку.'
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: integer
+                      example: '1'
+                    travel_id:
+                      type: integer
+                      example: '1'
+                    city_id:
+                      type: integer
+                      example: '1'
+                    name_ru:
+                      type: string
+                      example: Москва
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    delete:
+      tags:
+        - 'Travel cities'
+      summary: 'Метод удаляет города из путешествия.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: deleteTravelCity
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                type: object
+                example:
+                  id: 1
+      responses:
+        200:
+          description: 'Города успешно удалены.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+      security:
+        -
+          bearerAuth: []
+  /api/travels:
+    get:
+      tags:
+        - Travels
+      summary: 'Метод возвращает список путешествий пользователя, начиная с последних.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: getAlltravel
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    user_id:
+                      type: int
+                      example: '1'
+                    name:
+                      type: string
+                      example: 'Моя поездка в Европу.'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    put:
+      tags:
+        - Travels
+      summary: 'Метод обновляет данные о путешествиях пользователя.'
+      description: 'На входе принимает массив объектов. Обязательно нужно передать id поездки. Остальные поля передаем только в случае, если нужно обновить. Требуется авторизация при помощи заголовка bearer.'
+      operationId: updateTravels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                type: object
+                example:
+                  id: 1
+                  name: 'Моя новая поездка в Европу.'
+      responses:
+        200:
+          description: 'Возвращает массив обновленных объектов.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    name:
+                      type: string
+                      example: 'Моя поездка в Европу.'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - Travels
+      summary: 'Метод создает путешествия пользователя.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: createTravels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  name:
+                    type: string
+                type: object
+                example:
+                  name: 'Моя поездка в Европу'
+      responses:
+        200:
+          description: 'Поездки успешно созданы.'
+          content:
+            application/json:
+              schema:
+                items:
+                  properties:
+                    id:
+                      type: int
+                      example: '1'
+                    name:
+                      type: string
+                      example: 'Моя поездка в Европу.'
+                    created_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                    updated_at:
+                      type: date-time
+                      example: '2020-10-09T15:58:13.000000Z'
+                  type: object
+      security:
+        -
+          bearerAuth: []
+    delete:
+      tags:
+        - Travels
+      summary: 'Метод удаляет указанные поездки пользователя.'
+      description: 'На входе принимает массив объектов. Требуется авторизация при помощи заголовка bearer.'
+      operationId: deleteTravels
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                properties:
+                  id:
+                    type: integer
+                type: object
+                example:
+                  id: 1
+      responses:
+        200:
+          description: 'Поездки успешно удалены.'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+      security:
+        -
+          bearerAuth: []
+  '/api/travels/{travel_id}':
+    get:
+      tags:
+        - Travels
+      summary: 'Метод возвращает путешествие пользователя.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: getOnrtravel
+      parameters:
+        -
+          name: id
+          in: path
+          description: 'Идентификатор поездки.'
+          required: true
+          schema:
+            type: integer
+            format: int32
+          example: '1'
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int
+                    example: '1'
+                  user_id:
+                    type: int
+                    example: '1'
+                  name:
+                    type: string
+                    example: 'Моя поездка в Европу.'
+                  created_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                  updated_at:
+                    type: date-time
+                    example: '2020-10-09T15:58:13.000000Z'
+                type: object
+        404:
+          description: 'Не найдено.'
+          content:
+            application/json:
+              schema:
+                items: []
+      security:
+        -
+          bearerAuth: []
+  /api/user:
+    get:
+      tags:
+        - Users
+      summary: 'Метод возвращает информацию о текущем пользователе.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: user
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int32
+                    example: 1
+                  email:
+                    type: string
+                    example: user@example.com
+                  name:
+                    type: string
+                    example: Vlad
+                  updated_at:
+                    type: string
+                    example: '2020-10-10T15:33:10.000000Z'
+                type: object
+      security:
+        -
+          bearerAuth: []
+  /api/logout:
+    post:
+      tags:
+        - Users
+      summary: 'Метод отключает токен авторизации пользователя.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: logout
+      responses:
+        200:
+          description: 'Сервер не возвращает в ответ никаких данных, просто 200 ОК.'
+      security:
+        -
+          bearerAuth: []
+  /api/change_password:
+    post:
+      tags:
+        - Users
+      summary: 'Метод для изменения пароля пользователя.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: login
+      parameters:
+        -
+          name: password
+          in: query
+          description: 'Текущий пароль'
+          required: true
+          schema:
+            type: string
+          example: '123'
+        -
+          name: new_password
+          in: query
+          description: 'Новый пароль'
+          required: true
+          schema:
+            type: string
+          example: '456'
+      responses:
+        200:
+          description: 'Устанавливает пользователю новый пароль и возвращает данные пользователя'
+        404:
+          description: 'Пользователь не найден.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 422
+                  message:
+                    type: string
+                    example: 'Пользователь не найден.'
+                type: object
+        422:
+          description: 'Указан не верный пароль.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 422
+                  message:
+                    type: string
+                    example: 'Указан не верный пароль.'
+                type: object
+      security:
+        -
+          bearerAuth: []
+  /api/backup_run:
+    get:
+      tags:
+        - Backups
+      summary: 'Метод для создания полного бекапа приложения, пользовательских файлов и базы данных.'
+      description: ''
+      operationId: backup_run
+      responses:
+        200:
+          description: 'Бекап успешно создан.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: 'Backup done!'
+                type: object
+        500:
+          description: 'Произошла ошибка.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 500
+                  message:
+                    type: string
+                    example: 'Текст ошибки.'
+                type: object
+      security: []
+  /api/register:
+    post:
+      tags:
+        - Users
+      summary: 'Метод для регистрации с помощью e-mail'
+      description: ''
+      operationId: register
+      parameters:
+        -
+          name: email
+          in: query
+          description: e-mail
+          required: true
+          schema:
+            type: string
+            format: email
+          example: user@mail.com
+        -
+          name: password
+          in: query
+          description: Пароль
+          required: true
+          schema:
+            type: string
+            format: password
+          example: '123456'
+        -
+          name: password_confirmation
+          in: query
+          description: 'Подтверждение пароля.'
+          required: true
+          schema:
+            type: string
+            format: password
+          example: '123456'
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/UserSchema'
+                type: object
+        422:
+          description: 'Пользователь ввел неверные данные для регистрации.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 422
+                  message:
+                    type: string
+                    example: 'Пользователь с таким e-mail уже зарегистрирован.'
+                type: object
+        500:
+          description: 'Ошибка на стороне сервера.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 500
+                  message:
+                    type: string
+                    example: 'Текст ошибки.'
+                type: object
+      security: []
+  /api/login:
+    post:
+      tags:
+        - Users
+      summary: 'Метод для входа в приложение с помощью e-mail'
+      description: ''
+      operationId: ogin
+      parameters:
+        -
+          name: email
+          in: query
+          description: e-mail
+          required: true
+          schema:
+            type: string
+            format: email
+          example: user@mail.com
+        -
+          name: password
+          in: query
+          description: Пароль
+          required: true
+          schema:
+            type: string
+            format: password
+          example: '123456'
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/UserSchema'
+                type: object
+        404:
+          description: 'Пользователь не найден.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Пользователь с таким e-mail не найден.'
+                type: object
+        422:
+          description: 'Указан не верный пароль'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 422
+                  message:
+                    type: string
+                    example: 'Указан не верный пароль'
+                type: object
+      security: []
+  /api/send_auth_email:
+    post:
+      tags:
+        - Users
+      summary: 'Метод для отправки на e-mail кода для входа.'
+      description: ''
+      operationId: send_auth_email
+      parameters:
+        -
+          name: email
+          in: query
+          description: e-mail
+          required: true
+          schema:
+            type: string
+            format: email
+          example: user@mail.com
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema: []
+        404:
+          description: ''
+          content:
+            application/json:
+              schema: []
+      security: []
+components:
+  schemas:
+    UserSchema:
+      properties:
+        id:
+          type: int32
+          example: 1
+        name:
+          type: string
+          example: Vlad
+        email:
+          type: string
+          example: user@email.com
+        banned:
+          description: 'Если пользователь забанен, то значение будет 1.'
+          type: integer
+          example: '0'
+        updated_at:
+          description: 'Дата последнего обновления.'
+          type: string
+          example: '2020-10-09T09:20:38.000000Z'
+        bearer:
+          type: string
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiNGMwN2Y1NWJiODQyNDE4ZWYyZGYxMTcxZGQzNmQyYTFkM2MwZjIwZDk2YTQxYWY0OTM3NDUxOTliMzFhYmI1OGY3ZGU4NjZjMmExOGEzZjYiLCJpYXQiOjE2MDQwNzg4ODgsIm5iZiI6MTYwNDA3ODg4OCwiZXhwIjoxNjM1NjExMjg4LCJzdWIiOiIyNCIsInNjb3BlcyI6W119.MjtpUiCmgowNZzIlGrtqzy9wyZ2BtX3e18MO3SLEN30tfwsLCoUyJGA1WgX5Q0Vn0BP1S_f27d1YriMgpIME6YrALEIonfaw22UHx7aDGUyK2z4CcKMspYdBYhDjIWEy6o_k_EozBjcbw2OXz92NTYVE05_E7VyYPFbZNL1xk6fyA0umkCDYz_h08qe6Y4zjGskBZThgq-GxRD5vcc4QP-3YK9y6dcZ6wE5T00uyULEu1dFYcQ0H77wFr1jNp91ByVc8IMhvYk_bIhK9BDJ5tPTvdwZec0DYCa57ZVDLfoKpu-F1mlD5VpVhN4jh7uenfhiiyHNUMIsL2fcF6zNLlZzcsYKh8WToPQ2v2eIPx9sL1KLa0MvcQ2nglDg61jRv2lN-mGoy3S5FLio6N57-ZONUUhi1Oxes4EOkV8dqKkWEBqKmcH3LQivHAdkZnRCJo-rKvR_1wDHqwXyDV8DOi8eMmpEsotxsfn5RTqyuqmm2RtYlhFTpwy7_2SgmtFNTt9QbcagjDDMxqcW_PdlVy4qohL7BKotHMub09htvFvMdbsmhW31dDr0X-sVKIQE_SIzyhnPllpSyQ-DtpHvScqYoOqDg25XrlID5uyT_VRbescFn3o0swIaWsNWqDrsScgAP4iQgykBt3W8Ylx560I8qll7y09cpSvHTJELpDh8
+      type: object
+    BoatSchema:
+      properties:
+        id:
+          type: int
+          example: '1'
+        user_id:
+          type: int
+          example: '1'
+        city_ticket_id:
+          type: int
+          example: '1'
+        departure_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        arrival_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        created_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        updated_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+      type: object
+    TrainSchema:
+      properties:
+        id:
+          type: int
+          example: '1'
+        user_id:
+          type: int
+          example: '1'
+        city_ticket_id:
+          type: int
+          example: '1'
+        departure_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        arrival_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        created_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        updated_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+      type: object
+    AutoSchema:
+      properties:
+        id:
+          type: int
+          example: '1'
+        user_id:
+          type: int
+          example: '1'
+        city_ticket_id:
+          type: int
+          example: '1'
+        departure_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        arrival_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        created_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        updated_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+      type: object
+    PlaneSchema:
+      properties:
+        id:
+          type: int
+          example: '1'
+        user_id:
+          type: int
+          example: '1'
+        city_ticket_id:
+          type: int
+          example: '1'
+        departure_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        arrival_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        title:
+          type: string
+          example: KYI
+        carrier:
+          type: string
+          example: UA
+        flight_number:
+          type: string
+          example: '1234'
+        departure_iata_code:
+          type: string
+          example: NYA
+        departure_unix_time:
+          type: int
+          example: 1603057062
+        arrival_iata_code:
+          type: string
+          example: KYI
+        arrival_unix_time:
+          type: int
+          example: 1603057062
+        fly_min:
+          type: int
+          example: 100
+        created_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+        updated_at:
+          type: date-time
+          example: '2020-10-09T15:58:13.000000Z'
+      type: object
+    MyTestSchema:
+      properties:
+        field1:
+          type: integer
+          example: '1'
+        field2:
+          type: integer
+          example: '2'
+        field3:
+          type: integer
+          example: '3'
+      type: object
+    DeletedIDs:
+      type: array
+      items:
+        type: integer
+  responses:
+    200:
+      description: Найдено.
+      content:
+        application/json:
+          schema:
+            properties:
+              status:
+                description: "path=\"/api/hello_world\",\nsummary=\"Тестовый запрос, чтобы проверить соединение с сервером.\",\ndescription=\"Описание\",\noperationId=\"helloWorld\",\ntags={\"Tests\"}, \nsecurity={},"
+                type: int32
+                example: 200
+              message:
+                description: "path=\"/api/hello_world\",\nsummary=\"Тестовый запрос, чтобы проверить соединение с сервером.\",\ndescription=\"Описание\",\noperationId=\"helloWorld\",\ntags={\"Tests\"}, \nsecurity={},"
+                type: string
+                example: Найдено.
+              some_objects_array:
+                description: "path=\"/api/hello_world\",\nsummary=\"Тестовый запрос, чтобы проверить соединение с сервером.\",\ndescription=\"Описание\",\noperationId=\"helloWorld\",\ntags={\"Tests\"}, \nsecurity={},"
+                type: array
+                items:
+                  properties:
+                    title:
+                      description: "path=\"/api/hello_world\",\nsummary=\"Тестовый запрос, чтобы проверить соединение с сервером.\",\ndescription=\"Описание\",\noperationId=\"helloWorld\",\ntags={\"Tests\"}, \nsecurity={},"
+                      type: string
+                      example: Test
+                    category_id:
+                      description: "path=\"/api/hello_world\",\nsummary=\"Тестовый запрос, чтобы проверить соединение с сервером.\",\ndescription=\"Описание\",\noperationId=\"helloWorld\",\ntags={\"Tests\"}, \nsecurity={},"
+                      type: int32
+                      example: '123'
+                  type: object
+              another_message:
+                description: "path=\"/api/hello_world\",\nsummary=\"Тестовый запрос, чтобы проверить соединение с сервером.\",\ndescription=\"Описание\",\noperationId=\"helloWorld\",\ntags={\"Tests\"}, \nsecurity={},"
+                type: string
+                example: 'hello world'
+              flat_object:
+                $ref: '#/components/schemas/MyTestSchema'
+            type: object
+    404:
+      description: 'Не найдено.'
+      content:
+        application/json:
+          schema:
+            properties:
+              status:
+                description: "path=\"/api/hello_world\",\nsummary=\"Тестовый запрос, чтобы проверить соединение с сервером.\",\ndescription=\"Описание\",\noperationId=\"helloWorld\",\ntags={\"Tests\"}, \nsecurity={},"
+                type: int32
+                example: 404
+              message:
+                description: "path=\"/api/hello_world\",\nsummary=\"Тестовый запрос, чтобы проверить соединение с сервером.\",\ndescription=\"Описание\",\noperationId=\"helloWorld\",\ntags={\"Tests\"}, \nsecurity={},"
+                type: string
+                example: 'Не найдено.'
+            type: object
+    413:
+      description: 'Доступ запрещен.'
+  parameters:
+    city_id:
+      name: city_id
+      in: path
+      description: 'City ID.'
+      required: true
+      schema:
+        type: integer
+        format: int32
+      example: '1'
+    text:
+      name: text
+      in: path
+      description: 'Some description.'
+      required: true
+      schema:
+        type: string
+        format: text
+      example: 'This is my text.'
+security:
+  - []

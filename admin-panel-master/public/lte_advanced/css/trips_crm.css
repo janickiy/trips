@@ -1,0 +1,13 @@
+.crm-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    padding: 10px 0 10px 0;
+    /*background: #e05151; // red */
+    background: #43c159;
+}
+.crm-sidebar-header p {
+    margin: 0px;
+}

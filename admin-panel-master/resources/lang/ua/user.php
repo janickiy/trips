@@ -1,0 +1,32 @@
+<?php
+
+return [
+    "user" => "Користувач",
+    "create_new" => "Створити",
+    "search_user" => "Пошук користувача",
+    "id" => "ID",
+    "name" => "Назва",
+    "email" => "Пошта",
+    "lang" => "Мова",
+    "role" => "Роль",
+    "edit" => "Редагувати",
+    "no_records" => "Нема дописів",
+    "create_user" => "Створити користувача",
+    "password" => "Пароль",
+    "created_at" => "Дата створення",
+    "updated_at" => "Оновлено",
+    "image" => "Зображення",
+    "ip" => "IP",
+    "create" => "Створити",
+    "edit_user" => "Редагувати користувача",
+    "new_password" => "Новий пароль",
+    "delete" => "Видалити",
+    "save" => "Зберегти",
+    "delete_confirmation" => "Точно видалити?",
+    "email_exists" => "Такий email вже існує!",
+    "item_created" => "Створено!",
+    "item_deleted" => "Видалено!",
+    "item_updated" => "Оновлено!",
+    "item_not_found" => "Дописів немає.",
+
+];

@@ -1,0 +1,59 @@
+@startuml Trips
+
+header Trips
+
+skinparam monochrome false
+skinparam shadowing false
+skinparam dpi 200
+skinparam LegendFontSize 11
+skinparam SequenceGroup {
+    BackgroundColor #Lavender
+    BodyBackgroundColor #AliceBlue
+}
+skinparam SequenceReference {
+    HeaderBackgroundColor #PeachPuff
+    BackgroundColor #PapayaWhip
+}
+
+actor "Юзер" as user
+participant "Фронтенд" as front
+participant "Бэкенд" as back
+
+title Аутентификация пользователя
+
+' autonumber "<b>0"
+
+user -> front: Открывает приложение
+opt Выбирает вход по эл. почте
+    user -> front: Заполняет имеил
+    front -> back: POST запрос /api/send_auth_email
+    opt Если такой имеил не зарегистирован
+        back -> front: POST ответ /api/send_auth_email \nс ошибкой, что имейл не найден
+        front -> user: "Имейл не зарегистрирован"
+    else Если такой имеил зарегистирован
+        back -> front: POST ответ /api/send_auth_email \nс кодом, отправленным на почту
+    end
+    back -> user: Получает на почту письмо с кодом
+    user -> front: Заполняет код из письма
+    opt Если код заполнен неправильно
+        front -> user: "Неверный код"
+    else Если код заполнен правильно
+        front -> back: POST запрос /api/login \nс кодом из письма
+        back -> front: POST ответ /api/login \nс подтверждением входа
+    end
+else Выбирает вход через любую из соцсетей
+    user -> front: Выбирает соцсеть
+    front -> front: Открывает WebView для авторизации
+    user -> front: Авторизовывается
+    front -> back: POST запрос /api/login/{provider} \nс токеном
+    opt Если такой имеил не зарегистирован
+        back -> front: POST ответ /api/login/{provider} \nс ошибкой, что имейл не найден
+        front -> user: "Имейл не зарегистрирован"
+    else Если такой имеил зарегистирован
+        back -> front: POST ответ /api/login/{provider} \nс bearer токеном
+    end
+end
+back -> front: Авторизовывает пользователя
+front -> front: Открывает экран с поездками
+
+@enduml

@@ -1,0 +1,1232 @@
+asyncapi: 2.0.0
+info:
+  title: Trips WebSockets
+  version: 1.0.0
+  description: This service make synchronizations easy as possible.
+servers:
+  development:
+    url: data.dev.trips.im:6001
+    protocol: wss
+    description: 'Чтобы подключиться, нужно добавить к адресу  ?code=XXX - код, полученный методом GET: /api/get_wss_link. А для административного доступа добавьте ?admin= и токен доступа.' 
+  production:
+    url: data.prod.trips.im:6001
+    protocol: wss
+    description: 'Чтобы подключиться, нужно добавить к адресу  ?code=XXX - код, полученный методом GET: /api/get_wss_link. А для административного доступа добавьте ?admin= и токен доступа.'
+  
+#------------------------------------ 
+# 
+# Каналы:
+# 
+#------------------------------------
+channels:
+
+  welcome:
+    publish:
+      message:
+        $ref: '#/components/messages/welcome'  
+
+  ping:
+    subscribe:
+      message:
+        $ref: '#/components/messages/ping'
+
+  pong:
+    publish:
+      message:
+        $ref: '#/components/messages/pong'
+
+  subscribe_to_updates:
+    subscribe:
+      message:
+        $ref: '#/components/messages/subscribe_to_update_request'
+  updates:
+    publish:
+      message:
+        $ref: '#/components/messages/subscribe_to_update_response'  
+      
+      
+
+  add_artifact:
+    subscribe:
+      message:
+        $ref: '#/components/messages/add_artifact_request' 
+        
+  add_artifact_result:
+    publish:
+      message:
+        $ref: '#/components/messages/add_artifact_response'    
+        
+        
+  edit_artifact:
+    subscribe:
+      message:
+        $ref: '#/components/messages/edit_artifact_request'
+        
+  edit_artifact_result:
+    publish:
+      message:
+        $ref: '#/components/messages/edit_artifact_response'   
+
+        
+  delete_artifact:
+    subscribe:
+      message:
+        $ref: '#/components/messages/delete_artifact_request'
+ 
+ 
+  delete_artifact_result:
+    publish:
+      message:
+        $ref: '#/components/messages/delete_artifact_response' 
+ 
+ 
+  unsubscribe_from_updates:
+    subscribe:
+      message:
+        $ref: '#/components/messages/unsubscribe_request'    
+  unsubscribe_result:
+    publish:
+      message:
+        $ref: '#/components/messages/unsubscribe_response' 
+ 
+  delete_all_user_artifacts:
+    subscribe:
+      message:
+        $ref: '#/components/messages/delete_all_user_artifacts_request'    
+ 
+  delete_all_user_artifacts_result:
+    publish:
+      message:
+        $ref: '#/components/messages/delete_all_user_artifacts_response'  
+ 
+  delete_account:
+    publish:
+      message:
+        $ref: '#/components/messages/delete_user_account_response'  
+ 
+#------------------------------------ 
+# 
+# /Каналы
+# 
+#------------------------------------
+ 
+ 
+ 
+ 
+#------------------------------------ 
+# 
+# Компоненты:
+# 
+#------------------------------------
+components:
+
+
+  messages:
+
+
+    welcome:
+      name: 'Приветственное сообщение'
+      description: Сервер отправляет приветственное сообщение клиенту, если соединение с веб-сокетом прошло успешно.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: welcome
+          status_code:
+            name: 'Код ответа сервера.'
+            title: 'Код ответа сервера.'
+            $ref: '#/components/schemas/example_status_codes'
+      
+    ping:
+      name: 'Проверка соединения'
+      description: Клиент может подать сигнал, чтобы проверить есть ли соединение с сервером.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: ping
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          app_version:
+            type: string
+            description: Версия фронтенда.
+            default: 1
+     
+    pong:
+      name: 'Pong'
+      description: Ответ сервера на ping запрос.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: pong
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          status_code:
+            name: 'Код ответа сервера.'
+            title: 'Код ответа сервера.'
+            $ref: '#/components/schemas/example_status_codes'
+            
+
+      
+         
+    #------------->     
+    subscribe_to_update_request:
+      name: 'Отправка данных на синхронизацию.'
+      description: 'Фронтенд отправляет свои артефакты на синхронизацию при выходе в онлайн. Для корневых артефактов trip следует указывать parent_artifact_id == null.'
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: subscribe_to_updates
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          app_version:
+            type: string
+            description: Версия фронтенда.
+            default: 1
+          data:
+            type: object
+            description: Данные фронтенда, плоские. 
+            properties:
+              bulk_create:
+                items:
+                  - $ref: '#/components/schemas/artifact_to_create_request'
+              bulk_edit:
+                items:
+                  - $ref: '#/components/schemas/artifact_to_edit_request'
+              bulk_delete:
+                items:
+                  - $ref: '#/components/schemas/artifact_to_delete_request'
+            additionalProperties: false
+        additionalProperties: false
+    # <------------- 
+
+
+    #------------->
+    subscribe_to_update_response:
+      name: 'Результат выполнения синхронизации'
+      description: "Первое сообщение фронтенд воспринимает как снэпшот, поэтому удаляет все что у него есть и заменяет на то, что пришло. А дальше слушает event:'updates' уже как обновления."
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: updates
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          status_code:
+            name: 'Код ответа сервера.'
+            title: 'Код ответа сервера.'
+            $ref: '#/components/schemas/example_status_codes'
+          status_message:
+            name: 'Дополнительная информаця об ошибке.'
+            title: 'Дополнительная информаця об ошибке.'
+            $ref: '#/components/schemas/example_status_message'
+          data:
+            type: object
+            description: Команды для фронтенда.
+            properties:
+              bulk_create:
+                items:
+                  - $ref: '#/components/schemas/artifact_example'
+              bulk_edit:
+                items:
+                  - $ref: '#/components/schemas/artifact_example'
+              bulk_delete:
+                items:
+                  - $ref: '#/components/schemas/artifact_to_delete_request'
+        additionalProperties: false
+    # <-------------
+            
+     
+     
+     
+     
+     
+    #------------->
+    # Запрос на создание 1 артефакта:
+    add_artifact_request: 
+      name: add_artifact
+      description: Запрос на создание 1 артефакта.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: add_artifact
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          app_version:
+            type: string
+            description: Версия фронтенда.
+            default: 1
+          data:
+            type: object
+            properties:
+               parent_artifact_id:
+                  type: integer
+                  default: 1
+               artifact_type:
+                  type: integer
+                  default: 1
+                  enum: 
+                    - 0
+                    - 1
+                    - 2
+                    - 3
+                    - 4
+                    - 5
+                    - 6
+                    - 7
+                    - 8
+               order_index:
+                 type: integer
+                 default: 1 
+               attributes:
+                  type: object
+
+        additionalProperties: false
+     # <-------------
+     
+    
+    #------------->
+    # Результат создания 1 артефакта:
+    add_artifact_response: 
+      name: add_artifact
+      description: Результат создания артефакта.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: add_artifact_result
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          status_code:
+            name: 'Код ответа сервера.'
+            title: 'Код ответа сервера.'
+            $ref: '#/components/schemas/example_status_codes'
+          status_message:
+            name: 'Дополнительная информаця об ошибке.'
+            title: 'Дополнительная информаця об ошибке.'
+            $ref: '#/components/schemas/example_status_message'
+          data:
+            type: object
+            $ref: '#/components/schemas/artifact_example'
+        additionalProperties: false
+     # <-------------
+    
+    #------------->
+    # Запрос на редактирование 1 артефакта:
+    edit_artifact_request: 
+      name: edit_artifact
+      description: Запрос на обновление 1 артефакта.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: edit_artifact
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          app_version:
+            type: string
+            description: Версия фронтенда.
+            default: 1
+          data:
+            type: object
+            $ref: '#/components/schemas/artifact_to_edit_request'
+            additionalProperties: false
+        additionalProperties: false
+     # <-------------
+     
+     
+    #------------->
+    # Результат редактирования 1 артефакта:
+    edit_artifact_response: 
+      name: edit_artifact_result
+      description: Результат обновления артефакта.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: edit_artifact_result
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          status_code:
+            name: 'Код ответа сервера.'
+            title: 'Код ответа сервера.'
+            $ref: '#/components/schemas/example_status_codes'
+          status_message:
+            name: 'Дополнительная информаця об ошибке.'
+            title: 'Дополнительная информаця об ошибке.'
+            $ref: '#/components/schemas/example_status_message'
+          data:
+            type: object
+            $ref: '#/components/schemas/artifact_example'
+        additionalProperties: false    
+     # <-------------
+     
+    
+    #------------->
+    # Запрос на удаление 1 артефакта:
+    delete_artifact_request: 
+      name: delete_artifact
+      description: Запрос на удаление 1 артефакта.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: delete_artifact
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          app_version:
+            type: string
+            description: Версия фронтенда.
+            default: 1
+          data:
+            type: object
+            $ref: '#/components/schemas/artifact_to_delete_request'
+            additionalProperties: false
+        additionalProperties: false
+     # <-------------
+     
+    #------------->
+    #  Результат удаления 1 артефакта:
+    delete_artifact_response: 
+      name: delete_artifact_result
+      description: Результат удаления.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default: delete_artifact_result
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          status_code:
+            name: 'Код ответа сервера.'
+            title: 'Код ответа сервера.'
+            $ref: '#/components/schemas/example_status_codes'
+          status_message:
+            name: 'Дополнительная информаця об ошибке.'
+            title: 'Дополнительная информаця об ошибке.'
+            $ref: '#/components/schemas/example_status_message'
+          data:
+            type: object
+            $ref: '#/components/schemas/artifact_to_delete_request'
+            additionalProperties: false
+        additionalProperties: false
+     # <-------------
+
+     
+
+
+       
+      
+      
+      
+    #------------->
+    unsubscribe_request: 
+      name: Отписка
+      description: Отписаться от обновлений.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default:  unsubscribe_from_updates
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          app_version:
+            type: string
+            description: Версия фронтенда.
+            default: 1
+        additionalProperties: false
+     # <-------------  
+    
+    #------------->
+    unsubscribe_response: 
+      name: Отписка
+      description: Отписка.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default:   unsubscribe_result
+          message:
+            type: string
+            default:  Bye bye
+        additionalProperties: false
+     # <-------------  
+    
+    
+    
+    #------------->
+    delete_all_user_artifacts_request: 
+      name: Удалить все
+      description: Административный метод, требуется специальный токен. Удаляет все артефакты указанного пользователя.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default:  delete_all_user_artifacts
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          app_version:
+            type: string
+            description: Версия фронтенда.
+            default: 1
+          data:
+            type: object
+            $ref: '#/components/schemas/data_user_id'
+            additionalProperties: false
+        additionalProperties: false
+     # <------------- 
+    
+    
+    #------------->
+    delete_all_user_artifacts_response: 
+      name: Результат удаления всех артефактов пользователя администратором.
+      description: Результат удаления всех артефактов пользователя администратором.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default:  delete_all_user_artifacts_result
+          seq_num:
+            type: string
+            $ref: '#/components/schemas/sec_num'
+          status_code:
+            name: 'Код ответа сервера.'
+            title: 'Код ответа сервера.'
+            $ref: '#/components/schemas/example_status_codes'
+          status_message:
+            name: 'Дополнительная информаця об ошибке.'
+            title: 'Дополнительная информаця об ошибке.'
+            $ref: '#/components/schemas/example_status_message'
+          data:
+            type: object
+            $ref: '#/components/schemas/data_user_id'
+            additionalProperties: false
+        additionalProperties: false
+     # <------------- 
+    
+    
+    #------------->
+    delete_user_account_response: 
+      name: Аккаунт пользователя был удален по запросу самого пользователя. 
+      description: Фронтенду нужно так же удалить локальные данные этого пользователя.
+      payload:
+        type: object
+        properties:
+          event:
+            type: string
+            default:  delete_account
+          data:
+            type: object
+            $ref: '#/components/schemas/data_user_id'
+            additionalProperties: false
+        additionalProperties: false
+     # <------------- 
+    
+    
+    #
+#------------------------------------ 
+# 
+# /Компоненты
+# 
+#------------------------------------
+   
+   
+   
+#------------------------------------ 
+# 
+# Схемы:
+# 
+#------------------------------------
+  schemas:
+  
+    #------------->
+    example_status_codes: 
+      title: 'Код ответа сервера. Статус обработки запроса.'
+      name: 'Код ответа сервера. Статус обработки запроса.'
+      default: 200
+      enum: 
+        - 200
+        - 400
+        - 403
+        - 404
+        - 500
+      description: '200 — OK, 403 — Forbidden, 404 — Not Found, 500 — Server error'
+    # <-------------
+  
+    #------------->
+    # Пример артефакта:
+    artifact_example: 
+      type: object
+      properties:
+         artifact_id: 
+           type: integer
+           default: 1
+         parent_artifact_id:
+           type: integer
+           default: 1
+         created_by_user_id:
+           type: integer
+           default: 1
+         last_modified_by_user_id:
+           type: integer
+           default: 1
+         created_at:
+           type: integer
+           default: 1613231761
+         last_modified_at:
+           type: integer
+           default: 1613231761
+         artifact_type:
+           type: integer
+           default: 1
+           enum: 
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+            - 8
+         order_index:
+           type: integer
+           default: 1
+         version:
+           type: integer
+           default: 1
+         attributes:
+            type: object
+    # <-------------
+  
+  
+  
+    #------------->
+    # Пример запроса фронтенда на создание артефакта:
+    artifact_to_create_request: 
+      type: object
+      properties:
+         temp_artifact_id: 
+           type: integer
+           default: 1
+         temp_parent_artifact_id:
+           type: integer
+           default: 1
+         artifact_type:
+           type: integer
+           default: 1
+           enum: 
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+            - 8
+         order_index:
+           type: integer
+           default: 1
+         attributes:
+            type: object
+    # <-------------
+  
+    #------------->
+    # Пример запроса фронтенда на редактирование артефакта:
+    artifact_to_edit_request: 
+      type: object
+      properties:
+         artifact_id: 
+           type: integer
+           default: 1
+         parent_artifact_id:
+           type: integer
+           default: 1
+         version: 
+           type: integer
+           default: 1
+         artifact_type:
+           type: integer
+           default: 1
+           enum: 
+            - 0
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+            - 6
+            - 7
+            - 8
+         order_index:
+           type: integer
+           default: 1
+         attributes:
+            type: object
+    # <-------------
+  
+    #------------->
+    # Пример запроса фронтенда на удаление артефакта:
+    artifact_to_delete_request: 
+      type: object
+      properties:
+         artifact_id: 
+           type: integer
+           default: 1
+    # <-------------
+  
+  
+    #------------->
+    type_enum:
+      title: 'Название артефакта.'
+      name: 'Название артефакта.'
+      description: 'Название артефакта.'
+      additionalProperties: false
+      type: string
+      enum: 
+            - user_travels
+            - travel_cities
+            - city_notes
+            - city_links
+            - city_tickets
+            - city_ticket_files
+            - city_files
+            - city_bookings
+            - city_booking_files
+    # <-------------
+    
+    #------------->
+    # Дополнительное поле ответа сервера:
+    example_status_message: 
+      title: 'В случае ошибки на стороне сервера, тут будет дополнительная информация.'
+      name: 'В случае ошибки на стороне сервера, тут будет дополнительная информация.'
+      type: string
+      description: 'В случае ошибки на стороне сервера, тут будет дополнительная информация.'
+    # <-------------
+  
+    #------------->
+    sec_num:
+      type: string
+      description: 'UUID. Обозначает идентификатор текущего запроса.'
+      example: "123e4567-e89b-12d3-a456-426655440000"
+    # <-------------
+  
+       
+
+
+    
+     
+    # Массив артефактов:
+    artifacts_to_destroy_value:
+      type: object
+      description: 'Имя артефакта'
+      properties:
+        artifact_name:
+          items:
+            - $ref: '#/components/schemas/artifact_to_destroy'
+            - $ref: '#/components/schemas/artifact_to_destroy'
+
+
+    # Артефакт, который нужно удалить:
+    artifact_to_destroy:
+      type: object
+      description: Артефакт, который нужно удалить.
+      properties:
+        id:
+          type: integer
+          description: 'Идентификаторы артефактов, которые нужно удалить.'
+          default: 1
+
+    data_user_id:
+      type: object
+      description: Данные.
+      properties:
+        user_id:
+          type: integer
+          description: 'Идентификатор пользователя.'
+          default: 1
+
+
+    
+#------------------------------------ 
+# 
+# /Схемы
+# 
+#------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#------------------------------------ 
+# 
+# Артефакты для обновления:
+# 
+#------------------------------------
+    
+
+    
+
+    
+    #------------->
+    user_travels:
+      title: "Поездки пользователя"
+      name: "Поездки пользователя"
+      description: "Поездки пользователя"
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID артефакта."
+          default: 1
+        parent_id:
+          type: integer
+          description: "ID родительского артефакта."
+          default: 1
+        version:
+          type: integer
+          description: "Версия артефакта."
+          default: 1
+        user_id:
+          type: integer
+          description: "ID пользователя."
+          default: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+            type: object
+            properties:
+
+              name:
+                type: string
+                example: "Поездка в европу"
+    # <-------------
+    
+    
+    #------------->
+    travel_cities:
+      title: "Города в поездке."
+      name: "Города в поездке."
+      description: "Города в поездке."
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID артефакта."
+          default: 1
+        parent_id:
+          type: integer
+          description: "ID родительского артефакта."
+          default: 1
+        version:
+          type: integer
+          description: "Версия артефакта."
+          default: 1
+        user_id:
+          type: integer
+          description: "ID пользователя."
+          default: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+            type: object
+            properties:
+
+              city_id:
+                type: integer
+                example: 107462
+                description: "ИД города из базы данных городов."
+    # <-------------
+    
+    
+    #------------->
+    city_files:
+      title: "Файлы города."
+      name: "Файлы города."
+      description: "Файлы города."
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID артефакта."
+          default: 1
+        parent_id:
+          type: integer
+          description: "ID родительского артефакта."
+          default: 1
+        version:
+          type: integer
+          description: "Версия артефакта."
+          default: 1
+        user_id:
+          type: integer
+          description: "ID пользователя."
+          default: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+            type: object
+            properties:
+
+              title:
+                type: string
+                example: "Название файла"
+              link:
+                type: string
+                example: "https://static.prod.trips.im/..."
+    # <-------------
+    
+    
+    #------------->
+    city_notes:
+      title: "Заметки о городе."
+      name: "Заметки о городе."
+      description: "Заметки о городе."
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID артефакта."
+          default: 1
+        parent_id:
+          type: integer
+          description: "ID родительского артефакта."
+          default: 1
+        version:
+          type: integer
+          description: "Версия артефакта."
+          default: 1
+        user_id:
+          type: integer
+          description: "ID пользователя."
+          default: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+            type: object
+            properties:
+
+              text:
+                type: string
+                example: "Hello wordl!"
+    # <-------------
+    
+    
+    #------------->
+    city_links:
+      title: "Ссылки в городе."
+      name: "Ссылки в городе."
+      description: "Ссылки в городе."
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID артефакта."
+          default: 1
+        parent_id:
+          type: integer
+          description: "ID родительского артефакта."
+          default: 1
+        version:
+          type: integer
+          description: "Версия артефакта."
+          default: 1
+        user_id:
+          type: integer
+          description: "ID пользователя."
+          default: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+            type: object
+            properties:
+
+              title:
+                type: string
+                example: "Google!"
+              link:
+                type: string
+                example: "https://google.com"
+    # <-------------
+    
+    
+    #------------->
+    city_tickets:
+      title: "Билеты в городе."
+      name: "Билеты в городе."
+      description: "Билеты в городе."
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID артефакта."
+          default: 1
+        parent_id:
+          type: integer
+          description: "ID родительского артефакта."
+          default: 1
+        version:
+          type: integer
+          description: "Версия артефакта."
+          default: 1
+        user_id:
+          type: integer
+          description: "ID пользователя."
+          default: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+            type: object
+            properties:
+
+              city_ticket_category_id:
+                type: integer
+                example: 1
+              title:
+                type: string
+                example: "Hello Wordl!"
+              departure_city_id:
+                type: integer
+                example: 107462
+              arrival_city_id:
+                type: integer
+                example: 107462
+              departure_iata_code:
+                type: string
+                example: "MOW"
+              arrival_iata_code:
+                type: string
+                example: "MOW"
+              departure_unix_time:
+                type: integer
+                example: 1613148639
+              arrival_unix_time:
+                type: integer
+                example: 1613148639
+              flight_number:
+                type: integer
+                example: 1234
+              carrier:
+                type: integer
+                example: 107462
+              fly_min:
+                type: integer
+                example: 45
+    # <-------------
+    
+    
+    #------------->
+    city_ticket_files:
+      title: "Файлы билетов."
+      name: "Файлы билетов."
+      description: "Файлы билетов."
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID артефакта."
+          default: 1
+        parent_id:
+          type: integer
+          description: "ID родительского артефакта."
+          default: 1
+        version:
+          type: integer
+          description: "Версия артефакта."
+          default: 1
+        user_id:
+          type: integer
+          description: "ID пользователя."
+          default: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+            type: object
+            properties:
+
+              title:
+                type: string
+                example: "Название файла"
+              link:
+                type: string
+                example: "https://static.prod.trips.im"
+    # <-------------
+    
+    
+    #------------->
+    city_bookings:
+      title: "Бронирования в городе."
+      name: "Бронирования в городе."
+      description: "Бронирования в городе."
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID артефакта."
+          default: 1
+        parent_id:
+          type: integer
+          description: "ID родительского артефакта."
+          default: 1
+        version:
+          type: integer
+          description: "Версия артефакта."
+          default: 1
+        user_id:
+          type: integer
+          description: "ID пользователя."
+          default: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+            type: object
+            properties:
+
+              name:
+                type: string
+                example: "Отель Hilton"
+              address:
+                type: string
+                example: "Каланчевская ул., 21/40, Москва, Россия, 107078"
+              latitude:
+                type: number
+                format: decimal
+                example: 55.708620
+              longitude:
+                type: number
+                format: decimal
+                example: 37.563961
+    # <-------------
+    
+    
+    #------------->
+    city_booking_files:
+      title: "Файлы бронирований."
+      name: "Файлы бронирований."
+      description: "Файлы бронирований."
+      additionalProperties: false
+      type: object
+      properties:
+        id:
+          type: integer
+          description: "ID артефакта."
+          default: 1
+        parent_id:
+          type: integer
+          description: "ID родительского артефакта."
+          default: 1
+        version:
+          type: integer
+          description: "Версия артефакта."
+          default: 1
+        user_id:
+          type: integer
+          description: "ID пользователя."
+          default: 1
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        attributes:
+            type: object
+            properties:
+
+              title:
+                type: string
+                example: "Название файла"
+              link:
+                type: string
+                example: "https://static.prod.trips.im"
+    # <-------------
+    
+ 

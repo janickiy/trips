@@ -1,0 +1,111 @@
+@startuml "Trips DB schema"
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam dpi 200
+
+title Архитектура базы данных Trips
+
+entity users 
+{
+    id : integer <<PK>>
+    --
+    email: string
+    email_verified_at: integer
+    password: string
+}
+
+entity artifacts 
+{
+    * artifact_id: integer <<PK>>
+    * parent_artifact_id: integer
+    --
+    * artifact_type: integer
+    created_by_user_id: integer
+    last_modified_by_user_id: integer
+    created_at: integer
+    last_modified_at: integer
+    * version: integer
+}
+
+entity trips_attributes 
+{
+    artifact_id: integer <<FK>>
+    --
+    name: string
+}
+
+entity cities_attributes
+{
+    artifact_id: integer <<FK>>
+    --
+    city_id: integer
+    departure_date: integer
+    arrival_date: integer
+}
+
+entity files_attributes
+{
+    artifact_id: integer <<FK>>
+    --
+    title: string
+    upload_is_complete: integer
+}
+
+entity notes_attributes
+{
+    artifact_id: integer <<FK>>
+    --
+    text : text
+}
+
+entity links_attributes
+{
+    artifact_id: integer <<FK>>
+    --
+    title: string
+    link: string
+}
+
+entity bookings_attributes
+{
+    artifact_id: integer <<FK>>
+    --
+    name: string
+    address: string
+    latitude: double
+    longitude: double
+}
+
+entity tickets_attributes
+{
+    artifact_id: integer <<FK>>
+    --
+    category_id: integer
+    title: string
+    departure_city_id: integer
+    arrival_city_id: integer
+    departure_iata_code: string
+    arrival_iata_code: string
+    departure_at: integer
+    arrival_at: integer
+    flight_number: integer
+    carrier: string
+    fly_min: integer
+}
+
+users ||..o{ artifacts
+artifacts ||..o{ artifacts
+artifacts ||..o| trips_attributes
+artifacts ||..o| cities_attributes 
+artifacts ||..o| files_attributes 
+
+artifacts ||..o| notes_attributes 
+artifacts ||..o| links_attributes 
+artifacts ||..o| bookings_attributes 
+artifacts ||..o| tickets_attributes
+
+
+
+
+@enduml

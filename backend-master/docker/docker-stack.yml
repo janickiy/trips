@@ -1,0 +1,163 @@
+version: "3.9"
+
+x-env: &env
+  environment:
+    - APP_KEY
+    - DB_HOST
+    - DB_PASSWORD
+    - TRIPS_PASSWORD
+    - WEB_SOCKET_ADMIN_TOKEN
+    - PUSHER_APP_KEY
+    - PUSHER_APP_SECRET
+    - GOOGLE_CLIENT_SECRET
+    - APPLE_CLIENT_SECRET
+    - FACEBOOK_CLIENT_SECRET
+    - AWS_SECRET_ACCESS_KEY
+    - TELEGRAM_TOKEN
+    - DEVOPSBOT_TOKEN
+    - MAIL_PASSWORD
+
+services:
+
+  redis:
+    image: bitnami/redis:6.2
+    networks:
+      - trips
+    volumes:
+      - redis:/bitnami/redis/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        failure_action: rollback
+        order: start-first
+    healthcheck:
+      test: redis-cli ping
+      interval: 5s
+      retries: 3
+      start_period: 5s
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: '/docker/${STACK}/${CI_ENVIRONMENT_SLUG}'
+        awslogs-create-group: 'true'
+        tag: 'redis-{{.ID}}'
+  
+  api:
+    image: "${CI_REGISTRY_IMAGE}/${STACK}-${CI_ENVIRONMENT_SLUG}:${CI_COMMIT_SHORT_SHA}"
+    networks:
+      - trips
+    volumes:
+      - storage:/app/storage
+      - certs:/etc/ssl/private:ro
+    deploy:
+      placement:
+        constraints:
+          - "node.role == manager"
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        failure_action: rollback
+        order: start-first
+    command: api
+    env_file:
+      - .env-stage
+    <<: *env
+    healthcheck:
+      test: curl --silent --fail http://127.0.0.1:8080/fpm-ping 
+      interval: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: '/docker/${STACK}/${CI_ENVIRONMENT_SLUG}'
+        awslogs-create-group: 'true'
+        tag: 'api-{{.ID}}'
+
+
+  worker:
+    image: "${CI_REGISTRY_IMAGE}/${STACK}-${CI_ENVIRONMENT_SLUG}:${CI_COMMIT_SHORT_SHA}"
+    networks:
+      - trips
+    volumes:
+      - storage:/app/storage
+      - certs:/etc/ssl/private:ro
+    deploy:
+      placement:
+        constraints:
+          - "node.role == manager"
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        failure_action: rollback
+        order: start-first
+    command: worker
+    env_file:
+      - .env-stage
+    <<: *env
+  # temporary fake healthcheck. TODO: laravel-queue-checker or similar
+    healthcheck:
+      test: pgrep php || exit 1
+      interval: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: '/docker/${STACK}/${CI_ENVIRONMENT_SLUG}'
+        awslogs-create-group: 'true'
+        tag: 'worker-{{.ID}}'
+
+
+
+  websocket:
+    image: "${CI_REGISTRY_IMAGE}/${STACK}-${CI_ENVIRONMENT_SLUG}:${CI_COMMIT_SHORT_SHA}"
+    networks:
+      - trips
+    volumes:
+      - storage:/app/storage
+      - certs:/etc/ssl/private:ro
+    deploy:
+      placement:
+        constraints:
+          - "node.role == manager"
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        failure_action: rollback
+        order: start-first
+    command: websocket
+    env_file:
+      - .env-stage
+    <<: *env
+    healthcheck:
+      test: nc -z localhost 6001 || exit 1
+      interval: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: '/docker/${STACK}/${CI_ENVIRONMENT_SLUG}'
+        awslogs-create-group: 'true'
+        tag: 'websocket-{{.ID}}'
+
+networks:
+  trips:
+    external: true
+    name: trips
+
+volumes:
+  storage:
+  redis:
+
+  certs:
+    external: true
+    name: acme_certs

@@ -1,0 +1,119 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - when: always
+
+stages:
+  - build
+  - deploy
+
+# Base ssh preparing steps and docker login command
+.prepare_ssh_client: &prepare_ssh_client
+  - apk add --no-cache openssh-client
+  - eval $(ssh-agent -s)
+  - echo "${SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh-keyscan ${SSH_SERVER} >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+
+.docker_login: &docker_login
+  - docker login -u ${CI_DEPLOY_USER} -p ${CI_DEPLOY_PASSWORD} ${CI_REGISTRY}
+
+
+composer-install:
+  stage: build
+  image: php:7.4-alpine
+  before_script:
+    - apk --no-cache add composer
+  script:
+    - composer install --no-scripts --no-interaction --no-dev --prefer-dist --optimize-autoloader
+  artifacts:
+    paths:
+      - vendor
+
+
+# Base build job
+.build:
+  needs: ['composer-install']
+  variables:
+    TAG_LATEST: $CI_REGISTRY_IMAGE/${STACK}-${ENV}:latest
+    TAG_COMMIT: $CI_REGISTRY_IMAGE/${STACK}-${ENV}:$CI_COMMIT_SHORT_SHA
+  image: docker:latest
+  stage: build
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - 'echo "commit: ${CI_COMMIT_SHORT_SHA} on branch: ${CI_COMMIT_BRANCH} by author: ${CI_COMMIT_AUTHOR}" >> version.txt'
+  script:
+    - docker build -f docker/Dockerfile -t $TAG_COMMIT -t $TAG_LATEST .
+    - docker push $TAG_COMMIT
+    - docker push $TAG_LATEST
+  after_script:
+    - docker logout ${CI_REGISTRY}
+
+
+# Base deploy job
+.deploy:
+  image: docker:latest
+  stage: deploy
+  services:
+    - docker:dind
+  before_script:
+    - *prepare_ssh_client
+    - *docker_login
+  script:
+    - cd docker
+    - docker -H "ssh://${SSH_USER}@${SSH_SERVER}" stack deploy --compose-file docker-stack.yml --with-registry-auth ${STACK}
+  after_script:
+    - docker logout ${CI_REGISTRY}
+    - rm -rf ~/.ssh
+
+
+# ========================================
+#             BUILD JOBS
+# ========================================
+
+build_dev:
+  extends: .build
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "dev"
+  variables:
+    STACK: admin
+    ENV: dev
+
+build_prod:
+  extends: .build
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+  variables:
+    STACK: admin
+    ENV: prod
+
+
+# ========================================
+#             DEPLOY JOBS
+# ========================================
+
+deploy_dev:
+  extends: .deploy
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "dev"
+  variables:
+    STACK: admin
+  environment:
+    name: dev
+    url: https://admin.dev.trips.im
+
+deploy_prod:
+  extends: .deploy
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+  variables:
+    STACK: admin
+  environment:
+    name: prod
+    url: https://admin.prod.trips.im
+

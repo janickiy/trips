@@ -1,0 +1,31 @@
+<?php
+
+return [
+    "news" => "Новости",
+    "create_new" => "Создать",
+    "search_news" => "Поиск новостей",
+    "id" => "ID",
+    "title" => "Заголовок",
+    "comments_count" => "Количество комментариев",
+    "comments_closed" => "Комментарии закрыты",
+    "likes" => "лайки",
+    "dislikes" => "Дизлайки",
+    "publish_status" => "Статус публикации",
+    "edit" => "Редактировать",
+    "no_records" => "Нет записей",
+    "create_news" => "Создасть новость",
+    "text" => "Текст",
+    "thumbnail" => "Миниатюра",
+    "big_photo" => "Большое фото",
+    "create" => "Создать",
+    "edit_news" => "Редактировать новость",
+    "delete" => "Удалить",
+    "save" => "Сохранить",
+    "delete_confirmation" => "Точно удалить?",
+    "item_created" => "Создано!",
+    "item_deleted" => "Удалено!",
+    "item_updated" => "Обновлено!",
+    "item_not_found" => "Записей нет.",
+    "minutes" => "Минуты",
+
+];

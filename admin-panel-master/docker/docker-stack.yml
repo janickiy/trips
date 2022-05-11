@@ -1,0 +1,54 @@
+version: "3.9"
+
+x-env: &env
+  environment:
+    - APP_KEY
+    - DB_HOST
+    - DB_PASSWORD
+    - TRIPS_PASSWORD
+    - WEB_SOCKET_ADMIN_TOKEN
+    - MAIL_PASSWORD
+    - GOOGLE_MAP_TOKEN
+    - DEVOPSBOT_TOKEN
+
+services:
+
+  app:
+    image: "${CI_REGISTRY_IMAGE}/${STACK}-${CI_ENVIRONMENT_SLUG}:${CI_COMMIT_SHORT_SHA}"
+    networks:
+      - trips
+    volumes:
+      - storage:/app/storage
+    deploy:
+      placement:
+        constraints:
+          - "node.role == manager"
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        failure_action: rollback
+        order: start-first
+    command: admin
+    env_file:
+      - .env-stage
+    <<: *env
+    healthcheck:
+      test: curl --silent --fail http://127.0.0.1:8080/fpm-ping 
+      interval: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: '/docker/${STACK}/${CI_ENVIRONMENT_SLUG}'
+        awslogs-create-group: 'true'
+        tag: '{{.ID}}'
+
+networks:
+  trips:
+    external: true
+    name: trips
+
+volumes:
+  storage:

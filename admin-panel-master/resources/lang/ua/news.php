@@ -1,0 +1,31 @@
+<?php
+
+return [
+    "news" => "Новини",
+    "create_new" => "Створити",
+    "search_news" => "Пошук новин",
+    "id" => "ID",
+    "title" => "Заголовок",
+    "comments_count" => "Кількість коментарів",
+    "comments_closed" => "Коментари закриті",
+    "likes" => "лайки",
+    "dislikes" => "Дизлайки",
+    "publish_status" => "Статус публікації",
+    "edit" => "Редагувати",
+    "no_records" => "Нема дописів",
+    "create_news" => "Створити новину",
+    "text" => "Текст",
+    "thumbnail" => "Мініатюра",
+    "big_photo" => "Велике фото",
+    "create" => "Створити",
+    "edit_news" => "Редагувати новину",
+    "delete" => "Видалити",
+    "save" => "Зберегти",
+    "delete_confirmation" => "Точно видалити?",
+    "item_created" => "Створено!",
+    "item_deleted" => "Видалено!",
+    "item_updated" => "Оновлено!",
+    "item_not_found" => "Дописів немає.",
+    "minutes" => "Хвилини",
+
+];

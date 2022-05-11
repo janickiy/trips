@@ -1,0 +1,832 @@
+openapi: 3.0.0
+info:
+  title: 'Документация API для приложения Trips.'
+  version: 2.0.0
+paths:
+  '/api/login/{provider}':
+    post:
+      tags:
+        - Users
+      summary: 'Метод для  входа/регистрации с помощью соц. сетей.'
+      description: 'Авторизация произойдет автоматически. Успешный запрос возвращает bearer-токен.'
+      operationId: social_register
+      parameters:
+        -
+          name: token
+          in: query
+          description: token
+          required: true
+          schema:
+            type: string
+          example: ya29.A0AfH6SMDvtWet4WFGrkmC03E6R5y1zUNOA4rGY0oc61pHz4Mbm7ZoSHAG7V6vYRTH2VrxOSqleGSuiINu7H....
+        -
+          name: provider
+          in: query
+          description: 'provider: facebook, google, apple'
+          required: true
+          schema:
+            type: string
+          example: facebook
+      responses:
+        200:
+          description: 'Успешный вход/регистрация в приложении.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/UserSchema'
+                type: object
+        403:
+          description: 'Если бекенд не смог получит информацию о пользователе от провайдера, то доступ будет запрещен.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 403
+                  message:
+                    type: string
+                    example: 'Access denied.'
+                type: object
+        404:
+          description: 'Ошибка возникает в случае, если указан неверный провайдер, или по какой-то причине провайдер не предоставил e-mail пользователя.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 404
+                  message:
+                    type: string
+                    example: 'Not found.'
+                type: object
+        500:
+          description: 'Произошла ошибка на стороне сервера. Подробности сохраняются в логах сервера, а в поле message будет текст ошибки.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 500
+                  message:
+                    type: string
+                    example: 'Error message.'
+                type: object
+      security: []
+  /api/send_auth_email:
+    post:
+      tags:
+        - Users
+      summary: 'Метод для получения кода для входа в приложение (автоматическая регистрация).'
+      description: "В зависимости от того, существует ли указанный e-mail в нашей базе данных: \r\n* Если указанный e-mail не зарегистрирован в нашей базе данных, то произойдет автоматическая регистрация и код отправится на указанный емайл.\r\n* А если e-mail уже зарегистрирован, то сразу будет отправлен код. \r\n\r\nЧтобы авторизоваться в системе, нужно в течение 10 минут передать код методом POST: /api/login"
+      operationId: send_auth_email
+      parameters:
+        -
+          name: email
+          in: query
+          description: e-mail
+          required: true
+          schema:
+            type: string
+            format: email
+          example: user@mail.com
+        -
+          name: locale
+          in: query
+          description: 'Locale: ru, en'
+          required: true
+          example: ru
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema: []
+        400:
+          description: 'Не указан емайл, либо указан не верный.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 400
+                  message:
+                    type: string
+                    example: 'Wrong email.'
+                type: object
+      security: []
+  /api/login:
+    post:
+      tags:
+        - Users
+      summary: 'Метод для входа в приложение с помощью e-mail. Успешный запрос возвращает bearer-токен.'
+      description: ''
+      operationId: ogin
+      parameters:
+        -
+          name: email
+          in: query
+          description: e-mail
+          required: true
+          schema:
+            type: string
+            format: email
+          example: user@mail.com
+        -
+          name: password
+          in: query
+          description: Пароль
+          required: true
+          schema:
+            type: string
+            format: password
+          example: '123456'
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/UserSchema'
+                type: object
+        404:
+          description: 'Пользователь не найден.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 404
+                  message:
+                    type: string
+                    example: 'User with this e-mail was not found.'
+                type: object
+        403:
+          description: 'Истекло время жизни временного пароля.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 403
+                  message:
+                    type: string
+                    example: 'Password expired.'
+                type: object
+        422:
+          description: 'Указан не верный пароль'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 422
+                  message:
+                    type: string
+                    example: 'Invalid password.'
+                type: object
+      security: []
+  /api/user:
+    get:
+      tags:
+        - Users
+      summary: 'Метод возвращает информацию о текущем пользователе.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: user
+      responses:
+        200:
+          description: Найдено.
+          content:
+            application/json:
+              schema:
+                properties:
+                  id:
+                    type: int32
+                    example: 1
+                  email:
+                    type: string
+                    example: user@example.com
+                  first_name:
+                    type: string
+                    example: Artemii
+                  last_name:
+                    type: string
+                    example: Lemedev
+                  username:
+                    type: string
+                    example: art.lebedev
+                  password_expired_at:
+                    type: int
+                    example: '1624769258'
+                  updated_at:
+                    type: int
+                    example: '1624778962'
+                  deleted:
+                    type: int
+                    example: '0'
+                type: object
+      security:
+        -
+          bearerAuth: []
+  /api/logout:
+    post:
+      tags:
+        - Users
+      summary: 'Метод отключает токен авторизации пользователя.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: logout
+      responses:
+        200:
+          description: 'Сервер не возвращает в ответ никаких данных, просто 200 ОК.'
+      security:
+        -
+          bearerAuth: []
+  /api/user_name:
+    post:
+      tags:
+        - Users
+      summary: 'Метод для обновления полей first_name, last_name, username. Разрешено передавать любой набор из этих 3 полей.'
+      description: "Требуется авторизация при помощи заголовка bearer. \r\nПравила валидации полей:\r\n- First и Last name могут содержать только латинские и кириллические буквы, большие и маленькие.\r\n- Username должен быть уникальным, может содержать только латинские буквы lowercase и цифры, а так же символ подчеркивания и точку. Должен начинаться с буквы, и не может заканчиваться точкой или подчеркиванием. \r\nПример: vlad.salabun_php_programmer\r\n- Максимальная длина по дефолту 191 символ.\r\n- Не может принимать null\r\n- Пробелы или спецсимволы не принимает.\r\n- Передавать можно в любой комбинации. Что передано - то и будет изменено. Успешный запрос всегда возвращает все три имени.\r\n     "
+      operationId: update_user_name
+      parameters:
+        -
+          name: first_name
+          in: query
+          description: Имя
+          schema:
+            type: string
+          example: Artemy
+        -
+          name: last_name
+          in: query
+          description: Фамилия
+          schema:
+            type: string
+          example: Lebedev
+        -
+          name: username
+          in: query
+          description: Никнейм
+          schema:
+            type: string
+          example: art.lebedev
+      responses:
+        200:
+          description: 'Результат обработки запроса.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                  message:
+                    type: string
+                    example: 'User data updated.'
+                  data:
+                    $ref: '#/components/schemas/UserNameSchema'
+                type: object
+        400:
+          description: 'Указаны неверные данные.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 400
+                  message:
+                    type: string
+                    example: 'Wrong username.'
+                type: object
+        500:
+          description: 'Ошибка на стороне сервера.'
+      security:
+        -
+          bearerAuth: []
+  /api/delete_account:
+    get:
+      tags:
+        - Users
+      summary: 'Запрос кода для удаления аккаунта.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: delete_account
+      parameters:
+        -
+          name: locale
+          in: query
+          description: 'Locale: ru, en'
+          required: true
+          example: ru
+      responses:
+        200:
+          description: 'Результат обработки запроса.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                type: object
+        401:
+          description: 'Неверный авторизационный токен.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 401
+                type: object
+        500:
+          description: 'Ошибка на стороне сервера.'
+      security:
+        -
+          bearerAuth: []
+    post:
+      tags:
+        - Users
+      summary: 'Отправка кода для подтверждения удаления аккаунта.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: confirm_delete_account
+      responses:
+        200:
+          description: 'Аккаунт удален.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                type: object
+        400:
+          description: 'Не указан код или указан не верный.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 400
+                  message:
+                    type: string
+                    example: 'Specify code.'
+                type: object
+        401:
+          description: 'Неверный авторизационный токен.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 401
+                type: object
+        500:
+          description: 'Ошибка на стороне сервера.'
+      security:
+        -
+          bearerAuth: []
+  /api/file_upload:
+    post:
+      tags:
+        - Files
+      summary: 'Загрузка файла на сервер.'
+      description: "Требуется авторизация при помощи заголовка bearer. В поле metadata протокола TUS нужно указать artifact_id.\r\n* Смотрите документацию для фронтенда:\r\n* [Описание протокола для дозагрузки файлов на сервер](https://tus.io/protocols/resumable-upload.html)\r\n* [JS client](https://github.com/tus/tus-js-client)\r\n* [Java client](https://github.com/tus/tus-java-client)\r\n* [Swift client](https://github.com/tus/TUSKit)\r\n"
+      operationId: file_upload
+      responses:
+        200:
+          description: 'Успешный запрос отдаст запрошенный кусочек файла.'
+        401:
+          description: 'Неверный авторизационный токен'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status_code:
+                    type: int32
+                    example: 401
+                  status_message:
+                    type: string
+                    example: 'Неверный авторизационный токен.'
+                type: object
+        403:
+          description: 'Доступ запрещен.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status_code:
+                    type: int32
+                    example: 403
+                  status_message:
+                    type: string
+                    example: 'Доступ запрещен.'
+                type: object
+        404:
+          description: 'Такого файла не существует.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status_code:
+                    type: int32
+                    example: 404
+                  status_message:
+                    type: string
+                    example: 'Такого файла не существует.'
+                type: object
+        500:
+          description: 'Произошла ошибка'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status_code:
+                    type: int32
+                    example: 500
+                  status_message:
+                    type: string
+                    example: 'Произошла ошибка.'
+                type: object
+      security:
+        -
+          bearerAuth: []
+  /api/file_download:
+    get:
+      tags:
+        - Files
+      summary: 'Скачивание файла с сервера.'
+      description: 'Требуется авторизация при помощи заголовка bearer. В заголовках нужно указать с какого по какой байт передать файл. Пример: Range: bytes=200-1000'
+      operationId: file_download
+      parameters:
+        -
+          name: artifact_id
+          in: query
+          description: 'Идентификатор артефакта'
+          example: 1
+      responses:
+        200:
+          description: 'Успешный запрос отдаст запрошенный кусочек файла.'
+        401:
+          description: 'Неверный авторизационный токен'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status_code:
+                    type: int32
+                    example: 401
+                  status_message:
+                    type: string
+                    example: 'Неверный авторизационный токен.'
+                type: object
+        403:
+          description: 'Доступ запрещен.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status_code:
+                    type: int32
+                    example: 403
+                  status_message:
+                    type: string
+                    example: 'Доступ запрещен.'
+                type: object
+        404:
+          description: 'Такого файла не существует.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status_code:
+                    type: int32
+                    example: 404
+                  status_message:
+                    type: string
+                    example: 'Такого файла не существует.'
+                type: object
+        500:
+          description: 'Произошла ошибка'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status_code:
+                    type: int32
+                    example: 500
+                  status_message:
+                    type: string
+                    example: 'Произошла ошибка.'
+                type: object
+      security:
+        -
+          bearerAuth: []
+  /api/get_wss_link:
+    get:
+      tags:
+        - WSS
+      summary: 'Возвращает ссылку для подключения по WSS. Ссылка действует в течении 30 секунд, и уничтожается сразу после успешного входа.'
+      description: 'Требуется авторизация при помощи заголовка bearer.'
+      operationId: get_wss_link
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 200
+                  url:
+                    type: string
+                    example: 'wss://data.dev.trips.im?code=abcdefgh'
+                type: object
+        401:
+          description: 'Неверный авторизационный токен'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 401
+                  message:
+                    type: string
+                    example: 'Неверный авторизационный токен.'
+                type: object
+        403:
+          description: 'Доступ запрещен. Аккаунт удален.'
+          content:
+            application/json:
+              schema:
+                properties:
+                  status:
+                    type: int32
+                    example: 403
+                  message:
+                    type: string
+                    example: 'Account deleted.'
+                type: object
+      security:
+        -
+          bearerAuth: []
+components:
+  schemas:
+    UserSchema:
+      properties:
+        id:
+          type: int32
+          example: 1
+        first_name:
+          type: string
+          example: Artemy
+        last_name:
+          type: string
+          example: Lebedev
+        username:
+          type: string
+          example: art.lebedev
+        email:
+          type: string
+          example: user@email.com
+        updated_at:
+          description: 'Дата последнего обновления.'
+          type: int
+          example: '1624778962'
+        deleted:
+          type: int
+          example: '0'
+        bearer:
+          type: string
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiNGMwN2Y1NWJiODQyNDE4ZWYyZGYxMTcxZGQzNmQyYTFkM2MwZjIwZDk2YTQxYWY0OTM3NDUxOTliMzFhYmI1OGY3ZGU4NjZjMmExOGEzZjYiLCJpYXQiOjE2MDQwNzg4ODgsIm5iZiI6MTYwNDA3ODg4OCwiZXhwIjoxNjM1NjExMjg4LCJzdWIiOiIyNCIsInNjb3BlcyI6W119.MjtpUiCmgowNZzIlGrtqzy9wyZ2BtX3e18MO3SLEN30tfwsLCoUyJGA1WgX5Q0Vn0BP1S_f27d1YriMgpIME6YrALEIonfaw22UHx7aDGUyK2z4CcKMspYdBYhDjIWEy6o_k_EozBjcbw2OXz92NTYVE05_E7VyYPFbZNL1xk6fyA0umkCDYz_h08qe6Y4zjGskBZThgq-GxRD5vcc4QP-3YK9y6dcZ6wE5T00uyULEu1dFYcQ0H77wFr1jNp91ByVc8IMhvYk_bIhK9BDJ5tPTvdwZec0DYCa57ZVDLfoKpu-F1mlD5VpVhN4jh7uenfhiiyHNUMIsL2fcF6zNLlZzcsYKh8WToPQ2v2eIPx9sL1KLa0MvcQ2nglDg61jRv2lN-mGoy3S5FLio6N57-ZONUUhi1Oxes4EOkV8dqKkWEBqKmcH3LQivHAdkZnRCJo-rKvR_1wDHqwXyDV8DOi8eMmpEsotxsfn5RTqyuqmm2RtYlhFTpwy7_2SgmtFNTt9QbcagjDDMxqcW_PdlVy4qohL7BKotHMub09htvFvMdbsmhW31dDr0X-sVKIQE_SIzyhnPllpSyQ-DtpHvScqYoOqDg25XrlID5uyT_VRbescFn3o0swIaWsNWqDrsScgAP4iQgykBt3W8Ylx560I8qll7y09cpSvHTJELpDh8
+      type: object
+    UserNameSchema:
+      properties:
+        first_name:
+          type: string
+          example: Artemy
+        last_name:
+          type: string
+          example: Lebedev
+        username:
+          type: string
+          example: art.lebedev
+      type: object
+    'Типы артефактов':
+      allOf:
+        -
+          properties:
+            trip:
+              description: Поездка.
+              type: integer
+              default: 1
+          type: object
+        -
+          properties:
+            city:
+              description: Город.
+              type: integer
+              default: 2
+          type: object
+        -
+          properties:
+            file:
+              description: Файл.
+              type: integer
+              default: 3
+          type: object
+        -
+          properties:
+            note:
+              description: Заметка.
+              type: integer
+              default: 4
+          type: object
+        -
+          properties:
+            link:
+              description: Ссылка.
+              type: integer
+              default: 5
+          type: object
+        -
+          properties:
+            ticket:
+              description: Билет.
+              type: integer
+              default: 6
+          type: object
+        -
+          properties:
+            booking:
+              description: Бронирование.
+              type: integer
+              default: 7
+          type: object
+    'Атрибуты артефакта trip':
+      allOf:
+        -
+          properties:
+            name:
+              description: 'Название поездки.'
+              type: string
+              maxLength: 190
+              nullable: true
+          type: object
+    'Атрибуты артефакта city':
+      allOf:
+        -
+          properties:
+            city_id:
+              description: 'Идентификатор города из базы данных городов.'
+              type: integer
+            departure_date:
+              description: 'Unix метка времени отправления.'
+              type: integer
+              nullable: true
+            arrival_date:
+              description: 'Unix метка времени прибытия.'
+              type: integer
+              nullable: true
+          type: object
+    'Атрибуты артефакта file':
+      allOf:
+        -
+          properties:
+            title:
+              description: 'Название файла.'
+              type: string
+              maxLength: 190
+              nullable: true
+            upload_is_complete:
+              description: 'Этот параметр устанавливает сервер. По-умолчанию равен 0 и означает, что клиент инициировал загрузку, но файл еще не загружен в облако. 1 означает, что файл загружен в облако и его можно скачивать.'
+              type: integer
+              enum:
+                - '0'
+                - '1'
+          type: object
+    'Атрибуты артефакта note':
+      allOf:
+        -
+          properties:
+            text:
+              description: 'Текст заметки.'
+              type: string
+              nullable: true
+          type: object
+    'Атрибуты артефакта link':
+      allOf:
+        -
+          properties:
+            title:
+              description: 'Название ссылки.'
+              type: string
+              maxLength: 190
+              nullable: true
+            link:
+              description: 'Адрес ссылки.'
+              type: string
+              maxLength: 190
+              nullable: true
+          type: object
+    'Атрибуты артефакта ticket':
+      allOf:
+        -
+          properties:
+            category_id:
+              description: 'Категория билета: null - неизвестная категория, 1 - авиа,  2 - жд,  3 - авто, 4 - паром.'
+              type: integer
+              enum:
+                - 'null'
+                - '1'
+                - '2'
+                - '3'
+                - '4'
+              nullable: true
+            title:
+              description: 'Название билета.'
+              type: string
+              maxLength: 190
+              nullable: true
+            departure_city_id:
+              description: 'Идентификатор города отправления из базы данных городов.'
+              type: integer
+              nullable: true
+            arrival_city_id:
+              description: 'Идентификатор города прибытия из базы данных городов.'
+              type: integer
+              nullable: true
+            departure_iata_code:
+              description: 'IATA города отправления.'
+              type: string
+              maxLength: 190
+              nullable: true
+            arrival_iata_code:
+              description: 'IATA города прибытия.'
+              type: string
+              maxLength: 190
+              nullable: true
+            departure_at:
+              description: 'Unix метка времени отправления.'
+              type: integer
+              nullable: true
+            arrival_at:
+              description: 'Unix метка времени прибытия.'
+              type: integer
+              nullable: true
+            flight_number:
+              description: 'Номер рейса.'
+              type: string
+              nullable: true
+            carrier:
+              description: Перевозчик.
+              type: string
+              maxLength: 190
+              nullable: true
+          type: object
+    'Атрибуты артефакта booking':
+      allOf:
+        -
+          properties:
+            name:
+              description: 'Название бронирования.'
+              type: string
+              maxLength: 190
+              nullable: true
+            address:
+              description: 'Адрес бронирования.'
+              type: string
+              maxLength: 190
+              nullable: true
+            latitude:
+              description: Широта.
+              type: number
+              nullable: true
+            longitude:
+              description: Долгота.
+              type: number
+              nullable: true
+          type: object
+security:
+  - []

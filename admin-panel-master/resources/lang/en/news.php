@@ -1,0 +1,30 @@
+<?php
+
+return [
+    "news" => "News",
+    "create_new" => "Create",
+    "search_news" => "Search news",
+    "id" => "ID",
+    "title" => "Title",
+    "comments_count" => "Comments count",
+    "comments_closed" => "Comments closed",
+    "likes" => "likes",
+    "dislikes" => "Dislikes",
+    "publish_status" => "Publish status",
+    "edit" => "Edit",
+    "no_records" => "No records",
+    "create_news" => "Create news",
+    "text" => "Text",
+    "thumbnail" => "Thumbnail",
+    "big_photo" => "Big photo",
+    "create" => "Create",
+    "edit_news" => "Edit news",
+    "delete" => "Delete",
+    "save" => "Save",
+    "delete_confirmation" => "Are you sure you want to delete?",
+    "item_created" => "Created!",
+    "item_deleted" => "Deleted!",
+    "item_updated" => "Updated!",
+    "item_not_found" => "Not found",
+
+];
